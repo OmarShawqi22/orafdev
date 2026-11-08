@@ -545,7 +545,7 @@
     '$5,000+': '+5,000$',
     'Company': 'الشركة',
     'Get in touch': 'تواصل معنا',
-    'Websites, web apps and digital solutions built around your business.': 'مواقع وتطبيقات ويب وحلول رقمية مبنية حول مشروعك.',
+    'Websites, web apps and custom systems built around your business.': 'مواقع وتطبيقات ويب وأنظمة برمجية مبنية حول مشروعك.',
     'From idea to digital experience.': 'من الفكرة إلى تجربة رقمية.',
     'Email Orafdev': 'راسل Orafdev عبر الإيميل',
 
