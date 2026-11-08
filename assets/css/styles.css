@@ -1113,3 +1113,43 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
   .ribbon-track { animation: none; }
   .btn-glow::before, .btn-glow::after { animation: none; }
 }
+
+/* ==========================================================================
+   v2.1: WhatsApp-styled contact buttons, "+ more work" card
+   ========================================================================== */
+:root { --wa: #25D366; --wa-dark: #1DA851; }
+.wa-float { background: var(--wa); border-color: transparent; color: #fff; box-shadow: 0 14px 34px -10px rgba(37, 211, 102, .65); }
+.wa-float svg { fill: #fff; }
+.wa-float:hover { background: var(--wa-dark); border-color: transparent; transform: translateY(-2px); }
+.wa-float.is-visible::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 2px solid var(--wa); animation: wa-ring 2.4s var(--ease-out) infinite; pointer-events: none; }
+@keyframes wa-ring { 0% { opacity: .7; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.35); } }
+.btn-wa { background: var(--wa); border-color: transparent; color: #fff; }
+.btn-wa:hover { background: var(--wa-dark); border-color: transparent; color: #fff; }
+.m-cta-wa.is-wa { background: var(--wa); border-color: transparent; }
+.m-cta-wa.is-wa svg { fill: #fff; }
+
+.more-work {
+  margin-top: 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: clamp(20px, 3vw, 44px);
+  padding: clamp(24px, 3.2vw, 44px); border-radius: var(--r-xl); border: 1px dashed var(--line-3);
+  background: radial-gradient(60% 140% at 0% 50%, rgba(var(--ion-rgb), .12), transparent 60%), radial-gradient(50% 120% at 100% 50%, rgba(var(--iris-rgb), .12), transparent 60%), var(--surface);
+}
+.more-stack { position: relative; width: 132px; height: 104px; flex: none; }
+.more-stack i { position: absolute; inset: 0; border-radius: 18px; border: 1px solid var(--line-2); background: linear-gradient(160deg, var(--surface-3), var(--bg-2)); box-shadow: var(--shadow-1); transition: transform .7s var(--ease-out); }
+.more-stack i:nth-child(1) { transform: rotate(-9deg) translateX(-8px); }
+.more-stack i:nth-child(2) { transform: rotate(6deg) translateX(8px); }
+.more-stack b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-size: 3.4rem; font-weight: 700; line-height: 1;
+  background: var(--duo); -webkit-background-clip: text; background-clip: text; color: transparent; transition: transform .7s var(--ease-out); }
+.more-work:hover .more-stack i:nth-child(1), .more-work.is-in .more-stack i:nth-child(1) { transform: rotate(-16deg) translateX(-22px) translateY(-4px); }
+.more-work:hover .more-stack i:nth-child(2), .more-work.is-in .more-stack i:nth-child(2) { transform: rotate(12deg) translateX(22px) translateY(-4px); }
+.more-work:hover .more-stack b { transform: scale(1.12) rotate(90deg); }
+.more-stack i:nth-child(1), .more-stack i:nth-child(2) { transition-delay: .25s; }
+.more-text { display: grid; gap: 8px; }
+.more-kicker { font-family: var(--font-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: .875rem; color: var(--accent-text); }
+.more-text p:last-child { color: var(--fg-2); max-width: 34em; }
+.more-text strong { color: var(--fg); }
+@media (max-width: 760px) {
+  .more-work { grid-template-columns: 1fr; justify-items: start; }
+  .more-stack { width: 108px; height: 86px; margin-inline-start: 18px; }
+  .more-btn { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .wa-float.is-visible::before { animation: none; } }
