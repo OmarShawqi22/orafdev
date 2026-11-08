@@ -7,7 +7,7 @@ window.ORAFDEV = {
   contact: {
     // Digits only, with country code, e.g. "201234567890"
     whatsapp: "601162256809",
-    email: "",
+    email: "contact@orafdev.tech",
     // Full profile links. Any channel left empty stays hidden on the site.
     instagram: "https://www.instagram.com/orafdev/",
     linkedin: "",
@@ -20,10 +20,11 @@ window.ORAFDEV = {
 
   whatsappMessage: "Hi Orafdev, I'm interested in discussing a web development project.",
 
-  // Live / source links per project. Empty live → "Live view coming soon". Empty source → no button.
+  // Live / source links per project. Empty live → the button is hidden. Empty source → no button.
   // tech: only list technologies you have verified, e.g. ["Next.js", "Node.js"]. Empty → line hidden.
   projects: {
-    "car-rental": { live: "", source: "", tech: [] },
+    "car-rental": { live: "", source: "", tech: ["Next.js", "Supabase"] },
+    "aiu-shop": { live: "https://www.aiushop.net", source: "", tech: [] },
     "next-stack": { live: "", source: "", tech: [] },
     "israf-guard": { live: "", source: "", tech: [] },
     "ozo-store":  { live: "", source: "", tech: [] },

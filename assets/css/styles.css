@@ -1014,3 +1014,102 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
 }
 
 :root[dir="rtl"] .stat dd { direction: ltr; justify-content: flex-end; }
+
+/* ==========================================================================
+   v2 — contact first: glowing calls to action, the service ribbon,
+   real project shots, the closing email moment and the phone contact bar
+   ========================================================================== */
+.btn-lg { min-height: 58px; padding: 0 30px; font-size: 1rem; border-radius: 14px; }
+
+/* The main call to action: a light that runs around its edge and a slow pulse */
+.btn-glow { isolation: isolate; }
+.btn-glow::before {
+  content: ""; position: absolute; inset: -2px; z-index: -1; border-radius: inherit; padding: 2px;
+  background: conic-gradient(from var(--ang), var(--ion), var(--azure), var(--iris), #fff 300deg, var(--ion));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: orbit-ang 3.2s linear infinite;
+}
+.btn-glow::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; animation: cta-pulse 2.8s var(--ease-out) infinite; }
+@keyframes cta-pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--ion-rgb), .45); } 70%, 100% { box-shadow: 0 0 0 16px rgba(var(--ion-rgb), 0); } }
+.nav-cta.btn-glow { min-height: 44px; padding: 0 20px; font-size: .9375rem; }
+
+/* Service ribbon: two bands moving in opposite directions */
+.ribbon {
+  position: relative; display: grid; gap: 6px; padding: clamp(30px, 4vw, 52px) 0; overflow: hidden; direction: ltr;
+  background: linear-gradient(180deg, var(--bg), var(--bg-2));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.ribbon-row { display: flex; overflow: hidden; }
+.ribbon-track {
+  display: flex; align-items: center; flex: none; gap: clamp(22px, 3vw, 44px); padding-inline-end: clamp(22px, 3vw, 44px);
+  font-family: var(--font-display); font-size: clamp(2.1rem, 5.6vw, 5rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.12;
+  color: var(--fg); white-space: nowrap; animation: ribbon 42s linear infinite;
+}
+.ribbon-row.is-outline .ribbon-track { animation-direction: reverse; animation-duration: 52s; color: transparent; -webkit-text-stroke: 1.3px rgba(var(--ion-rgb), .6); }
+:root[data-theme="light"] .ribbon-row.is-outline .ribbon-track { -webkit-text-stroke-color: rgba(var(--azure-rgb), .55); }
+.ribbon-track i { flex: none; width: .4em; height: .4em; background: var(--brand); clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
+.ribbon:hover .ribbon-track { animation-play-state: paused; }
+@keyframes ribbon { to { transform: translateX(-50%); } }
+:root[lang="ar"] .ribbon-track { letter-spacing: 0; font-weight: 700; }
+
+/* CarHub: the booking site with the admin dashboard laid over it */
+.duo-shots { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16 / 11; }
+.duo-shots .shot { position: absolute; }
+.duo-main { top: 0; inset-inline-end: 0; width: 86%; }
+.duo-back { bottom: 0; inset-inline-start: 0; width: 58%; z-index: 2; box-shadow: 0 40px 80px -24px rgba(0, 3, 20, .95), 0 0 0 1px var(--line-3); transition: transform 1s var(--ease-out); }
+.panel:hover .duo-back, .panel.is-live .duo-back { transform: translateY(-10px); }
+
+/* AIU Shop: three phone screens fanned out */
+.phones { position: relative; width: 100%; max-width: 640px; height: clamp(320px, 36vw, 500px); }
+.phone { position: absolute; top: 50%; left: 50%; height: 94%; width: auto; max-width: none; border-radius: 26px; box-shadow: 0 40px 80px -30px rgba(0, 3, 20, .95), 0 0 0 1px var(--line-2); transition: transform 1s var(--ease-out); }
+.phone.p2 { z-index: 3; transform: translate(-50%, -50%); }
+.phone.p1 { z-index: 2; transform: translate(-112%, -47%) rotate(-8deg) scale(.86); }
+.phone.p3 { z-index: 2; transform: translate(12%, -47%) rotate(8deg) scale(.86); }
+.panel:hover .phone.p1, .panel.is-live .phone.p1 { transform: translate(-126%, -49%) rotate(-11deg) scale(.88); }
+.panel:hover .phone.p3, .panel.is-live .phone.p3 { transform: translate(26%, -49%) rotate(11deg) scale(.88); }
+.panel:hover .phone.p2, .panel.is-live .phone.p2 { transform: translate(-50%, -52%) scale(1.02); }
+
+/* The closing moment: our email, set as large as the screen allows */
+.talk { padding: clamp(120px, 14vw, 200px) 0; }
+.talk .cta-inner { gap: 24px; }
+.talk-mail {
+  position: relative; display: inline-block; max-width: 100%; padding-bottom: .14em;
+  font-family: "Funnel Display", var(--font-display); font-size: clamp(1.7rem, 7.6vw, 6.6rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1.05;
+  color: var(--fg); overflow-wrap: anywhere;
+}
+.talk-mail::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; background: var(--duo); transform: scaleX(.16); transition: transform .9s var(--ease-out); }
+.talk-mail:hover::after, .talk-mail:focus-visible::after { transform: scaleX(1); }
+.talk-mail-text span { display: inline-block; transition: transform .55s var(--ease-out), color .35s; transition-delay: calc(var(--i) * 16ms); }
+.talk-mail:hover .talk-mail-text span, .talk-mail:focus-visible .talk-mail-text span { transform: translateY(-.09em); color: var(--accent-text); }
+.btn-wa svg { width: 20px; height: 20px; fill: currentColor; }
+
+/* Phones and tablets: a contact bar after the hero */
+.m-cta { display: none; }
+@media (max-width: 1024px) {
+  .m-cta {
+    position: fixed; z-index: 60; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom));
+    display: flex; gap: 8px; padding: 8px; border-radius: 18px;
+    background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line-2); box-shadow: 0 24px 60px -24px rgba(0, 3, 20, .95);
+    transform: translateY(160%); transition: transform .55s var(--ease-out);
+  }
+  .m-cta.is-visible { transform: none; }
+  .m-cta .btn { flex: 1; min-height: 50px; }
+  .m-cta-wa { flex: none; width: 50px; display: grid; place-items: center; border-radius: var(--r-m); border: 1px solid var(--line-2); background: var(--surface-2); }
+  .m-cta-wa svg { width: 22px; height: 22px; fill: var(--accent-text); }
+  .m-cta-wa .i-mail { fill: none; stroke: var(--accent-text); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .wa-float { display: none; }
+  .footer { padding-bottom: 96px; }
+}
+@media (max-width: 600px) {
+  .duo-shots { aspect-ratio: 16 / 12; }
+  .phones { height: 330px; }
+  .phone { border-radius: 18px; }
+  .talk-mail { font-size: clamp(1.55rem, 8.4vw, 2.6rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-track { animation: none; }
+  .btn-glow::before, .btn-glow::after { animation: none; }
+}

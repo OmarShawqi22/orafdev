@@ -38,11 +38,22 @@
     else { a.href = (root || '') + '#contact'; }
   });
   const projects = cfg.projects || {};
-  // Live view: animated when a real URL exists, "coming soon" otherwise
+  // Live site: shown only when a real URL exists
   $$('[data-live]').forEach(a => {
     const url = projects[a.dataset.live]?.live;
-    if (url) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.classList.remove('is-soon'); }
-    else { a.removeAttribute('href'); a.classList.add('is-soon'); a.setAttribute('aria-disabled', 'true'); }
+    if (url) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false; }
+    else { a.removeAttribute('href'); a.hidden = true; }
+  });
+  // The big email link follows config.js, one letter per span so it can ripple on hover
+  $$('[data-email-link]').forEach(a => {
+    if (!c.email) { a.hidden = true; return; }
+    a.href = `mailto:${c.email}`;
+    const text = $('.talk-mail-text', a);
+    if (text) {
+      a.setAttribute('aria-label', c.email);
+      text.setAttribute('aria-hidden', 'true');
+      text.innerHTML = [...c.email].map((ch, i) => `<span style="--i:${i}">${ch}</span>`).join('');
+    }
   });
   // Source code only appears when a repository is public
   $$('[data-source]').forEach(a => {
@@ -484,7 +495,7 @@
         d.phone ? `WhatsApp / phone: ${d.phone}` : null,
         `Project type: ${d.type}`,
         `Budget: ${d.budget || 'Not sure yet'}`,
-        `Timeline: ${d.timeline || 'Flexible'}`,
+        d.timeline ? `Timeline: ${d.timeline}` : null,
         '', d.details,
       ].filter(v => v !== null).join('\n');
       const btn = $('button[type="submit"]', form);
@@ -530,6 +541,23 @@
   /* ---------- WhatsApp float ---------- */
   const wa = $('.wa-float');
   if (wa) setTimeout(() => wa.classList.add('is-visible'), reduced ? 0 : 1600);
+
+  /* ---------- Phone contact bar: after the hero, hidden while the form is on screen ---------- */
+  const mcta = $('[data-mcta]');
+  if (mcta) {
+    const heroEl = $('.hero');
+    const contactEl = $('#contact');
+    let contactOnScreen = false;
+    if (contactEl && 'IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { contactOnScreen = e.isIntersecting; syncBar(); }, { threshold: 0.12 }).observe(contactEl);
+    }
+    function syncBar() {
+      const past = window.scrollY > (heroEl ? heroEl.offsetHeight * 0.55 : 400);
+      mcta.classList.toggle('is-visible', past && !contactOnScreen);
+    }
+    window.addEventListener('scroll', syncBar, { passive: true });
+    syncBar();
+  }
 
   /* ---------- Initial language + theme state ---------- */
   if (doc.lang === 'ar') I18N.apply('ar');
