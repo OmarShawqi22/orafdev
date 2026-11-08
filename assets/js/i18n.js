@@ -475,8 +475,8 @@
       'تبني Orafdev المواقع وصفحات الهبوط وتطبيقات الويب المخصصة للأعمال، ونسلّمها أونلاين لأي دولة.',
     'Websites, landing pages and custom web apps, built by our founders and delivered online to any country.':
       'مواقع، وصفحات هبوط، وتطبيقات ويب مخصصة، يبنيها مؤسسونا ونسلّمها أونلاين لأي دولة.',
-    'Websites, web apps and custom systems that solve real problems in your business, built by our founders and delivered online to any country.':
-      'مواقع، وتطبيقات ويب، وأنظمة برمجية مخصصة تحل مشاكل حقيقية في مشروعك، يبنيها مؤسسونا ونسلّمها أونلاين لأي دولة.',
+    'Websites, web apps and custom systems that solve real problems in your business, built by a full team and delivered online to any country.':
+      'مواقع، وتطبيقات ويب، وأنظمة برمجية مخصصة تحل مشاكل حقيقية في مشروعك، يبنيها فريق كامل ونسلّمها أونلاين لأي دولة.',
     'Custom systems': 'أنظمة برمجية مخصصة',
     'Custom Systems': 'أنظمة برمجية مخصصة',
     'Have a problem slowing your business down? We build a software system made for it, so the work runs in one place instead of papers and spreadsheets.':
