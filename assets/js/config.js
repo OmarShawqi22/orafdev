@@ -11,7 +11,7 @@ window.ORAFDEV = {
     // Full profile links. Any channel left empty stays hidden on the site.
     instagram: "https://www.instagram.com/orafdev/",
     facebook: "https://www.facebook.com/profile.php?id=61559037788520",
-    linkedin: "",
+    linkedin: "https://www.linkedin.com/company/orafdev/",
     github: "",
   },
 
