@@ -794,7 +794,8 @@ svg.ig .ig-dot { fill: var(--accent-text); stroke: none; }
    WhatsApp, cursor, page veil
    ========================================================================== */
 .wa-float {
-  position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 40;
+  /* desktop: line up with the content column and sit clear of the screen edge */
+  position: fixed; inset-inline-end: max(var(--gutter), calc((100% - var(--wrap)) / 2)); bottom: 32px; z-index: 40;
   display: inline-flex; align-items: center; gap: 10px; height: 50px; padding: 0 20px 0 16px; border-radius: 25px;
   background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--line-2); color: var(--fg); font-size: .9375rem; font-weight: 600; box-shadow: var(--shadow-2);
