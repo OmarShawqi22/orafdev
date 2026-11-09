@@ -496,7 +496,7 @@
     'Booking systems': 'أنظمة الحجز',
     'New brand. Real experience.': 'براند جديد. خبرة حقيقية.',
     'The people behind Orafdev delivered these projects before the brand had a name.':
-      'هذه المشاريع سلّمها مؤسسو Orafdev قبل أن يحمل البراند اسمه.',
+      'هذه المشاريع سلّمها الفريق الذي يقف وراء Orafdev قبل أن يحمل البراند اسمه.',
     'Business websites': 'مواقع الشركات',
     'Web apps': 'تطبيقات الويب',
     'Dashboards': 'لوحات التحكم',
@@ -541,8 +541,8 @@
     'Phones, speed, forms and every flow.': 'الجوال والسرعة والنماذج وكل خطوة في الاستخدام.',
     'We go live and stay with you after launch.': 'نطلق الموقع ونبقى معك بعد الإطلاق.',
     'Have a project in mind?': 'عندك مشروع في بالك؟',
-    'Email us, message us on WhatsApp, or send the form. A founder replies, not a bot.':
-      'راسلنا على الإيميل أو واتساب، أو أرسل النموذج. يرد عليك أحد المؤسسين بنفسه.',
+    'Email us, message us on WhatsApp, or send the form. A real person from our team replies, not a bot.':
+      'راسلنا على الإيميل أو واتساب، أو أرسل النموذج. يرد عليك أحد أعضاء فريقنا بنفسه، لا بوت.',
     'WhatsApp us': 'راسلنا على واتساب',
     'Tell us about your project.': 'أخبرنا عن مشروعك.',
     'We reply with a few questions, then a clear scope, timeline and quote before any work starts.':
