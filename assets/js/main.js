@@ -102,10 +102,15 @@
     const reach = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
     doc.style.setProperty('--ink-x', `${x}px`);
     doc.style.setProperty('--ink-y', `${y}px`);
-    doc.style.setProperty('--ink-s', `${Math.ceil(reach / 0.31)}px`); // the blot's inner edge sits at 31% of the image
+    doc.style.setProperty('--ink-s', `${Math.ceil(reach / 0.25)}px`); // the ink is solid out to 25% of the image
     doc.classList.add('ink-switch');
-    const vt = document.startViewTransition(flipTheme);
-    vt.finished.finally(() => doc.classList.remove('ink-switch', 'theme-switching'));
+    // A glowing rim rides on the ink's edge: its own layer, masked by the same geometry.
+    const glow = document.createElement('div');
+    glow.className = 'ink-glow';
+    glow.setAttribute('aria-hidden', 'true');
+    const vt = document.startViewTransition(() => { flipTheme(); document.body.appendChild(glow); });
+    vt.ready.then(() => glow.classList.add('is-on')).catch(() => {});
+    vt.finished.finally(() => { glow.remove(); doc.classList.remove('ink-switch', 'theme-switching'); });
   });
   const syncLangBtn = () => {
     if (!langBtn) return;
