@@ -1154,3 +1154,17 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
   .more-btn { width: 100%; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .wa-float.is-visible::before { animation: none; } }
+
+/* Attoor: light English desktop, dark Arabic desktop and a phone, with language/theme chips */
+.trio-shots { position: relative; width: 100%; max-width: 880px; aspect-ratio: 16 / 11; }
+.trio-shots .shot { position: absolute; }
+.trio-main { top: 0; inset-inline-end: 4%; width: 80%; }
+.trio-back { bottom: 2%; inset-inline-start: 0; width: 56%; z-index: 2; box-shadow: 0 40px 80px -24px rgba(0, 3, 20, .95), 0 0 0 1px var(--line-3); transition: transform 1s var(--ease-out); }
+.trio-phone { position: absolute; bottom: 0; inset-inline-end: 0; width: 21%; height: auto; z-index: 3; border-radius: 18px; box-shadow: 0 40px 80px -24px rgba(0, 3, 20, .95), 0 0 0 1px var(--line-2); transition: transform 1s var(--ease-out); }
+.trio-chip { position: absolute; z-index: 4; padding: 6px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600; letter-spacing: .02em; color: #1a1406; background: rgb(var(--tint)); box-shadow: 0 10px 24px -8px rgba(var(--tint), .7); transition: transform 1s var(--ease-out); white-space: nowrap; }
+.chip-lang { top: 6%; inset-inline-start: 6%; }
+.chip-theme { top: 44%; inset-inline-start: 32%; background: #0B1022; color: rgb(var(--tint)); border: 1px solid rgba(var(--tint), .5); }
+.panel:hover .trio-back, .panel.is-live .trio-back { transform: translateY(-10px); }
+.panel:hover .trio-phone, .panel.is-live .trio-phone { transform: translateY(-16px) rotate(-2deg); }
+.panel:hover .trio-chip, .panel.is-live .trio-chip { transform: translateY(-6px); }
+@media (max-width: 900px) { .trio-shots { aspect-ratio: 16 / 12; } .trio-phone { border-radius: 12px; } .trio-chip { font-size: .6875rem; padding: 5px 10px; } }

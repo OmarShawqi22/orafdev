@@ -24,8 +24,9 @@ window.ORAFDEV = {
   // Live / source links per project. Empty live → the button is hidden. Empty source → no button.
   // tech: only list technologies you have verified, e.g. ["Next.js", "Node.js"]. Empty → line hidden.
   projects: {
-    "car-rental": { live: "", source: "", tech: ["Next.js", "Supabase"] },
+    "car-rental": { live: "https://car-web-sandy.vercel.app", source: "", tech: ["Next.js", "Supabase"] },
     "aiu-shop": { live: "https://www.aiushop.net", source: "", tech: [] },
+    "attoor": { live: "https://arafatalhomedy.github.io/attoor-website/", source: "", tech: ["React", "Vite"] },
     "next-stack": { live: "", source: "", tech: [] },
     "israf-guard": { live: "", source: "", tech: [] },
     "ozo-store":  { live: "", source: "", tech: [] },
