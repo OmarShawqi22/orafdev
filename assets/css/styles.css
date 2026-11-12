@@ -1195,3 +1195,7 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
     mask-position: calc(var(--ink-x) - var(--ink-s) / 2) calc(var(--ink-y) - var(--ink-s) / 2);
   }
 }
+
+/* Silk ribbons: fixed WebGL background that travels down the page with the visitor (see ribbons.js) */
+.bg-ribbons { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
+.bg-ribbons.is-on { opacity: 1; }
