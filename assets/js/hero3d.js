@@ -12,8 +12,10 @@ async function init() {
   const isSmall = () => window.innerWidth < 760;
   const lowPower = isSmall() || (navigator.hardwareConcurrency || 8) <= 4;
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !lowPower, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 2));
+  const dpr = window.devicePixelRatio || 1;
+  // Phones render at their real pixel density (up to 3x) so the panels stay sharp; the scene is a few quads, so this is cheap.
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !lowPower || dpr < 2, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(dpr, isSmall() ? 3 : 2));
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
@@ -25,7 +27,8 @@ async function init() {
   const C = { cyan: '#00BBFF', blue: '#2F5BFB', violet: '#6627FA', white: '#FFFFFF', text: '#C9D1EE', muted: '#8E9AC6', hull: 'rgba(8,17,48,0.78)', line: 'rgba(140,170,255,0.22)' };
   const FONT = '"Archivo", system-ui, sans-serif';
   const MONO = 'ui-monospace, "Cascadia Code", Consolas, monospace';
-  const PX = lowPower ? 150 : 220; // texture pixels per world unit
+  // texture pixels per world unit: enough for the panel text to stay crisp at the device's pixel density
+  const PX = Math.round(Math.min(360, Math.max(lowPower ? 200 : 260, 110 * Math.min(dpr, 3))));
 
   /* ---------- canvas texture helpers ---------- */
   function panelTexture(w, h, draw, { radius = 0.14, edge = C.cyan } = {}) {
@@ -55,7 +58,7 @@ async function init() {
     g.restore();
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 4;
+    tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     return tex;
   }
   const rr = (g, x, y, w, h, r, fill) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fillStyle = fill; g.fill(); };
