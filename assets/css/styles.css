@@ -1168,3 +1168,19 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
 .panel:hover .trio-phone, .panel.is-live .trio-phone { transform: translateY(-16px) rotate(-2deg); }
 .panel:hover .trio-chip, .panel.is-live .trio-chip { transform: translateY(-6px); }
 @media (max-width: 900px) { .trio-shots { aspect-ratio: 16 / 12; } .trio-phone { border-radius: 12px; } .trio-chip { font-size: .6875rem; padding: 5px 10px; } }
+
+/* Theme switch: the new theme spreads from the toggle like ink (View Transitions; see main.js) */
+html.ink-switch::view-transition-old(root),
+html.ink-switch::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.ink-switch::view-transition-new(root) {
+  -webkit-mask: url("../img/ink-mask.png") no-repeat; mask: url("../img/ink-mask.png") no-repeat;
+  animation: ink-spread 1.1s cubic-bezier(.65, 0, .35, 1) both;
+}
+@keyframes ink-spread {
+  from { -webkit-mask-size: 0 0; mask-size: 0 0; -webkit-mask-position: var(--ink-x) var(--ink-y); mask-position: var(--ink-x) var(--ink-y); }
+  to {
+    -webkit-mask-size: var(--ink-s) var(--ink-s); mask-size: var(--ink-s) var(--ink-s);
+    -webkit-mask-position: calc(var(--ink-x) - var(--ink-s) / 2) calc(var(--ink-y) - var(--ink-s) / 2);
+    mask-position: calc(var(--ink-x) - var(--ink-s) / 2) calc(var(--ink-y) - var(--ink-s) / 2);
+  }
+}

@@ -83,12 +83,29 @@
     if (themeBtn) I18N.setAttr(themeBtn, 'aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
     if (themeMeta) themeMeta.content = light ? '#F4F6FD' : '#050A1F';
   };
-  themeBtn?.addEventListener('click', () => {
+  const flipTheme = () => {
     doc.classList.add('theme-switching');
     doc.dataset.theme = doc.dataset.theme === 'light' ? 'dark' : 'light';
     try { localStorage.setItem('orafdev-theme', doc.dataset.theme); } catch (e) {}
     syncTheme();
-    requestAnimationFrame(() => requestAnimationFrame(() => doc.classList.remove('theme-switching')));
+  };
+  themeBtn?.addEventListener('click', () => {
+    // Ink spread: the new theme bleeds out from the button through an ink-blot mask.
+    // Browsers without View Transitions, and reduced-motion users, get the instant switch.
+    if (reduced || !document.startViewTransition) {
+      flipTheme();
+      requestAnimationFrame(() => requestAnimationFrame(() => doc.classList.remove('theme-switching')));
+      return;
+    }
+    const r = themeBtn.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const reach = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    doc.style.setProperty('--ink-x', `${x}px`);
+    doc.style.setProperty('--ink-y', `${y}px`);
+    doc.style.setProperty('--ink-s', `${Math.ceil(reach / 0.31)}px`); // the blot's inner edge sits at 31% of the image
+    doc.classList.add('ink-switch');
+    const vt = document.startViewTransition(flipTheme);
+    vt.finished.finally(() => doc.classList.remove('ink-switch', 'theme-switching'));
   });
   const syncLangBtn = () => {
     if (!langBtn) return;
