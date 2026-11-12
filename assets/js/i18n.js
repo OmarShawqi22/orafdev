@@ -578,6 +578,8 @@
     'A contact form and direct email': 'نموذج تواصل وإيميل مباشر',
     'Smooth scroll animations on a layout built for phones first': 'حركات ناعمة مع التمرير، وتصميم مبني للجوال أولاً',
     'A bilingual website for Attoor.CEGS, a construction, engineering and general services company, in English and Arabic with light and dark modes.': 'موقع بلغتين لشركة Attoor.CEGS للإنشاءات والهندسة والخدمات العامة، بالعربي والإنجليزي، بوضع فاتح وداكن.',
+    'A bilingual website for a construction, engineering and general services company. One site in English and Arabic, light and dark, with an admin dashboard where the company adds its own projects.': 'موقع بلغتين لشركة إنشاءات وهندسة وخدمات عامة. موقع واحد بالعربي والإنجليزي، بوضع فاتح وداكن، مع لوحة تحكم تضيف منها الشركة مشاريعها بنفسها.',
+    'An admin dashboard where the company adds its own projects, without a developer': 'لوحة تحكم تضيف منها الشركة مشاريعها بنفسها، بدون مبرمج',
     // CarHub case study
     'CarHub — car rental system — Orafdev': 'CarHub — نظام تأجير سيارات — Orafdev',
     'Booking website and admin dashboard': 'موقع حجز ولوحة تحكم',
