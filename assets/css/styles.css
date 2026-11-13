@@ -1236,3 +1236,22 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
 .silk3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; }
 .silk3d.is-on { opacity: 1; }
 html.has-silk3d .silk { display: none; }
+
+/* Scrollbar in the brand: a slim glowing cyan -> azure -> iris thumb on a deep navy track */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: #040817; border-left: 1px solid rgba(140, 170, 255, .08); }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px; border: 3px solid #040817; background-clip: padding-box;
+  background-image: linear-gradient(180deg, #19D3FF, #2F5BFB 55%, #6627FA);
+  box-shadow: inset 0 0 6px rgba(25, 211, 255, .35);
+}
+::-webkit-scrollbar-thumb:hover { border-width: 2px; background-image: linear-gradient(180deg, #4BDDFF, #4A72FF 55%, #7B45FF); }
+::-webkit-scrollbar-corner { background: #040817; }
+:root[data-theme="light"] ::-webkit-scrollbar-track { background: #E9EDFA; border-left-color: rgba(47, 91, 251, .12); }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb { border-color: #E9EDFA; }
+:root[data-theme="light"] ::-webkit-scrollbar-corner { background: #E9EDFA; }
+/* Firefox only (in Chrome, scrollbar-color would switch off the gradient thumb above) */
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-width: thin; scrollbar-color: #2F5BFB #040817; }
+  :root[data-theme="light"] { scrollbar-color: #2F5BFB #E9EDFA; }
+}
