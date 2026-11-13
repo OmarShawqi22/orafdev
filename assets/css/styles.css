@@ -1196,6 +1196,37 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
   }
 }
 
-/* Silk ribbons: fixed WebGL background that travels down the page with the visitor (see ribbons.js) */
-.bg-ribbons { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
-.bg-ribbons.is-on { opacity: 1; }
+/* Silk waves: pre-rendered ribbons that sit in the page, so they scroll with it for free.
+   Motion is compositor-only (transform, translate, opacity), so it never blocks scrolling. */
+.silk-host { position: relative; }
+.silk { position: absolute; left: -3%; width: 106%; aspect-ratio: 16 / 10; z-index: -1; pointer-events: none; contain: layout paint;
+  background: center / 100% 100% no-repeat; opacity: .95; animation: silk-float 24s ease-in-out infinite alternate; }
+.silk::after { content: ""; position: absolute; inset: 0; background: center / 100% 100% no-repeat; animation: silk-sheen 7s ease-in-out infinite alternate; }
+.silk--1 { background-image: url("../img/silk-1.webp"); }
+.silk--1::after { background-image: url("../img/silk-1-sheen.webp"); }
+.silk--2 { background-image: url("../img/silk-2.webp"); animation-duration: 28s; animation-delay: -9s; }
+.silk--2::after { background-image: url("../img/silk-2-sheen.webp"); animation-duration: 8.5s; animation-delay: -3s; }
+.silk--3 { background-image: url("../img/silk-3.webp"); animation-duration: 20s; animation-delay: -5s; }
+.silk--3::after { background-image: url("../img/silk-3-sheen.webp"); animation-duration: 6s; animation-delay: -2s; }
+.silk--top { top: clamp(-220px, -14vw, -80px); }
+.silk--mid { top: 8%; }
+.silk--hero { top: auto; bottom: -26%; opacity: .8; }
+.silk--flip { scale: -1 1; }
+@keyframes silk-float {
+  from { transform: translate3d(-2%, -1.5%, 0) rotate(-1.2deg); }
+  to   { transform: translate3d(2%, 1.5%, 0) rotate(1.2deg); }
+}
+@keyframes silk-sheen { from { opacity: .2; } to { opacity: 1; } }
+/* a little parallax where scroll-driven animations exist (runs on the compositor too) */
+@supports (animation-timeline: view()) {
+  .silk { animation: silk-float 24s ease-in-out infinite alternate, silk-drift linear both; animation-timeline: auto, view(); }
+  .silk--2 { animation-duration: 28s, auto; animation-delay: -9s, 0s; }
+  .silk--3 { animation-duration: 20s, auto; animation-delay: -5s, 0s; }
+  @keyframes silk-drift { from { translate: 0 9%; } to { translate: 0 -9%; } }
+}
+:root[data-theme="light"] .silk { opacity: .55; }
+@media (max-width: 760px) {
+  .silk { width: 190%; left: -45%; }
+  .silk--top { top: -90px; }
+}
+@media (prefers-reduced-motion: reduce) { .silk, .silk::after { animation: none; } }

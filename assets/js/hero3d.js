@@ -13,9 +13,9 @@ async function init() {
   const lowPower = isSmall() || (navigator.hardwareConcurrency || 8) <= 4;
 
   const dpr = window.devicePixelRatio || 1;
-  // Phones render at their real pixel density (up to 3x) so the panels stay sharp; the scene is a few quads, so this is cheap.
+  // Render at up to 2x: sharp on phones without the fill cost of 3x.
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !lowPower || dpr < 2, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(dpr, isSmall() ? 3 : 2));
+  renderer.setPixelRatio(Math.min(dpr, 2));
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
