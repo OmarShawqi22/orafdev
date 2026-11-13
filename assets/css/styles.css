@@ -1230,3 +1230,9 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
   .silk--top { top: -90px; }
 }
 @media (prefers-reduced-motion: reduce) { .silk, .silk::after { animation: none; } }
+
+/* Silk 3D (silk3d.js): a real 3D ribbon on a fixed canvas that follows the scroll 1:1.
+   When it runs, the pre-rendered silk images above step aside; they stay as the fallback. */
+.silk3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; }
+.silk3d.is-on { opacity: 1; }
+html.has-silk3d .silk { display: none; }
