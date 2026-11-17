@@ -179,42 +179,37 @@ p { text-wrap: pretty; }
 .btn-ghost:hover { border-color: var(--line-3); background: var(--surface-2); }
 .btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 
-/* Live view: a light that flows around the border */
+/* Live site: the one filled button on a project card, so it reads as the thing to press.
+   The arrow sits in its own tile and points out of the page: this link leaves the site. */
 .live-btn {
-  position: relative; isolation: isolate;
-  display: inline-flex; align-items: center; gap: 12px;
-  min-height: 50px; padding: 0 20px; border-radius: var(--r-m);
-  background: var(--surface-2); color: var(--fg); font-weight: 600; font-size: .9375rem;
-  box-shadow: inset 0 0 0 1px var(--line-2);
-  cursor: pointer; transition: background .3s, box-shadow .3s, transform .35s var(--ease-out);
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 54px; padding: 0 8px; padding-inline-start: 22px; border-radius: 14px;
+  background: var(--brand-btn); background-size: 170% 100%; background-position: 0% 0;
+  color: #fff; font-weight: 600; font-size: 1rem; white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(var(--ion-rgb), .4), 0 14px 30px -14px rgba(var(--azure-rgb), .9);
+  cursor: pointer;
+  transition: transform .35s var(--ease-out), background-position .6s var(--ease-out), box-shadow .35s;
 }
-.live-btn::before {
-  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; padding: 1.5px;
-  background: conic-gradient(from var(--ang), transparent 0deg, transparent 200deg, var(--ion) 260deg, var(--iris) 310deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: orbit-ang 3.6s linear infinite;
+.live-arrow {
+  display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255, 255, 255, .16); color: #fff; transition: background-color .3s, color .3s;
 }
-.live-btn::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: 0;
-  background: radial-gradient(120% 140% at 0% 50%, rgba(var(--ion-rgb), .16), transparent 60%);
-  transition: opacity .35s;
+.live-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .35s var(--ease-out); }
+@media (hover: hover) {
+  .live-btn:hover {
+    background-position: 100% 0; transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), inset 0 0 0 1px rgba(var(--ion-rgb), .8), 0 0 0 4px rgba(var(--ion-rgb), .18), 0 18px 44px -12px rgba(var(--ion-rgb), .8);
+  }
+  .live-btn:hover .live-arrow { background: #fff; color: var(--azure); }
+  .live-btn:hover .live-arrow svg { transform: translate(2px, -2px); }
 }
-.live-btn:hover { background: var(--surface-3); transform: translateY(-1px); }
-.live-btn:hover::before { animation-duration: 1.4s; }
-.live-btn:hover::after { opacity: 1; }
-.live-arrow { display: inline-block; transition: transform .35s var(--ease-out); }
-.live-btn:hover .live-arrow { transform: translateX(5px); }
-.live-soon { display: none; }
-.live-btn.is-soon { cursor: default; background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
-.live-btn.is-soon::before { animation: none; opacity: .35; }
-.live-btn.is-soon:hover { transform: none; background: transparent; }
-.live-btn.is-soon .live-arrow { display: none; }
-.live-btn.is-soon .live-soon { display: inline; font-size: .8125rem; font-weight: 500; padding: 3px 9px; border-radius: 6px; background: var(--surface-2); color: var(--fg-2); }
+.live-btn:focus-visible { outline-offset: 4px; }
 @keyframes orbit-ang { to { --ang: 360deg; } }
 
 /* Touch screens: a press you can feel, and the hero light drifting on its own */
-.btn:active, .live-btn:active, .tool-btn:active, .channels a:active { transform: scale(.96); transition-duration: .12s; }
+a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.btn:active, .live-btn:active, .tool-btn:active, .channels a:active, .link-btn:active, .m-cta-wa:active { transform: scale(.96); transition-duration: .12s; }
 .has-touch .hero-glow { animation: glow-drift 9s var(--ease) infinite alternate; }
 @keyframes glow-drift { from { translate: -18% 6%; } to { translate: 8% -6%; } }
 
@@ -748,7 +743,6 @@ p { text-wrap: pretty; }
 .next-steps p { color: var(--muted); font-size: .9375rem; margin-top: 4px; }
 .channels { display: flex; flex-wrap: wrap; gap: 8px; }
 .channels a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: var(--r-m); border: 1px solid var(--line-2); color: var(--fg); font-size: .9375rem; transition: border-color .25s, background .25s; }
-.channels a:hover { border-color: var(--line-3); background: var(--surface-2); }
 .channels li[data-missing], .socials li[data-missing] { display: none; }
 /* Instagram: the glyph in the logo's gradient, then the handle */
 .channels a, .socials a { gap: 9px; }
@@ -939,7 +933,6 @@ svg.ig .ig-dot { fill: var(--accent-text); stroke: none; }
   .panel-info { gap: 10px; }
   .panel-title { font-size: clamp(1.7rem, 7.4vw, 2.1rem); }
   .panel-desc { font-size: .9375rem; }
-  .panel-actions .live-btn { flex: 1 1 100%; justify-content: center; }
 
   .mod-body { padding: 24px 22px 26px; }
   .mod-visual { min-height: 200px; }
@@ -993,7 +986,6 @@ svg.ig .ig-dot { fill: var(--accent-text); stroke: none; }
 :root[dir="rtl"] .tech-list > div.is-active { background: linear-gradient(270deg, rgba(var(--ion-rgb), .08), transparent); }
 :root[dir="rtl"] .back::before { transform: scaleX(-1); }
 :root[dir="rtl"] .live-arrow { transform: scaleX(-1); }
-:root[dir="rtl"] .live-btn:hover .live-arrow { transform: scaleX(-1) translateX(5px); }
 :root[dir="rtl"] .hero-fallback { transform: scaleX(-1); }
 :root[dir="rtl"] .system-fill, :root[dir="rtl"] .pillar::before { transform-origin: right; }
 html.i18n-pending body { visibility: hidden; }
@@ -1011,7 +1003,6 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
   .system-fill { transform: none; }
   .tl-step > div { opacity: 1; transform: none; }
   .panel { position: relative; top: auto; transform: none; filter: none; }
-  .live-btn::before { animation: none; background: linear-gradient(90deg, var(--ion), var(--iris)); opacity: .6; }
 }
 
 :root[dir="rtl"] .stat dd { direction: ltr; justify-content: flex-end; }
@@ -1255,3 +1246,95 @@ html.has-silk3d .silk { display: none; }
   html { scrollbar-width: thin; scrollbar-color: #2F5BFB #040817; }
   :root[data-theme="light"] { scrollbar-color: #2F5BFB #E9EDFA; }
 }
+
+/* ==========================================================================
+   v3: phones first. Project links you can reach and press, contact channels
+   that light up, and nothing on a phone that repaints while you scroll.
+   ========================================================================== */
+
+/* Contact channels: each one lights up in its own colour */
+.channels li, .socials li { --c: var(--ion-rgb); }
+:is(.channels, .socials) li[data-channel="whatsapp"] { --c: 37, 211, 102; }
+:is(.channels, .socials) li[data-channel="instagram"] { --c: 255, 72, 140; }
+:is(.channels, .socials) li[data-channel="facebook"] { --c: 64, 140, 255; }
+:is(.channels, .socials) li[data-channel="linkedin"] { --c: 40, 160, 255; }
+.channels { gap: 10px; }
+/* A solid chip (the silk behind no longer runs through the text), with a band of the channel's
+   colour parked off its left edge. On hover the band sweeps across and the chip lights up. */
+.channels a {
+  position: relative; min-height: 46px; padding: 0 16px;
+  background: linear-gradient(100deg, transparent 38%, rgba(var(--c), .42) 50%, transparent 62%) 180% 0 / 220% 100% no-repeat, var(--surface);
+  transition: transform .35s var(--ease-out), border-color .3s, box-shadow .35s, background-position .9s var(--ease-out);
+}
+/* a ring of the same colour that pulses outward while the pointer stays */
+.channels a::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 1.5px solid rgb(var(--c)); opacity: 0; pointer-events: none; }
+svg.ig { transition: stroke .3s, filter .3s; }
+svg.ig .ig-dot { transition: fill .3s; }
+.channels a:focus-visible,
+.channels a:active {
+  border-color: rgb(var(--c)); background-position: -80% 0, 0 0;
+  box-shadow: 0 0 0 1px rgba(var(--c), .75), 0 0 20px rgba(var(--c), .6), 0 0 54px rgba(var(--c), .38), inset 0 0 22px -6px rgba(var(--c), .8);
+}
+@media (hover: hover) {
+  .channels a:hover {
+    border-color: rgb(var(--c)); background-position: -80% 0, 0 0; transform: translateY(-3px);
+    box-shadow: 0 0 0 1px rgba(var(--c), .75), 0 0 20px rgba(var(--c), .6), 0 0 54px rgba(var(--c), .38), 0 18px 40px -14px rgba(var(--c), .9), inset 0 0 22px -6px rgba(var(--c), .8);
+  }
+  .channels a:hover::before { animation: chan-halo 1.5s var(--ease-out) infinite; }
+  .channels a:hover svg.ig, .socials a:hover svg.ig { stroke: rgb(var(--c)); filter: drop-shadow(0 0 6px rgba(var(--c), .85)); }
+  .channels a:hover svg.ig .ig-dot, .socials a:hover svg.ig .ig-dot { fill: rgb(var(--c)); }
+  .footer .socials a { transition: color .25s, text-shadow .3s; }
+  .footer .socials a:hover { color: rgb(var(--c)); text-shadow: 0 0 18px rgba(var(--c), .75); }
+  .btn-wa:hover, .wa-float:hover { box-shadow: 0 0 0 4px rgba(37, 211, 102, .2), 0 0 30px -2px rgba(37, 211, 102, .75), 0 18px 40px -14px rgba(37, 211, 102, .9); }
+}
+@keyframes chan-halo { from { opacity: .85; transform: scale(1); } to { opacity: 0; transform: scale(1.14, 1.55); } }
+@media (prefers-reduced-motion: reduce) { .channels a:hover::before { animation: none; } }
+:root[data-theme="light"] :is(.channels, .socials) [data-channel="whatsapp"] { --c: 22, 163, 74; }
+:root[data-theme="light"] :is(.channels, .socials) [data-channel="instagram"] { --c: 219, 39, 119; }
+:root[data-theme="light"] :is(.channels, .socials) [data-channel="facebook"] { --c: 24, 119, 242; }
+:root[data-theme="light"] :is(.channels, .socials) [data-channel="linkedin"] { --c: 10, 102, 194; }
+:root[data-theme="light"] .channels li, :root[data-theme="light"] .socials li { --c: 31, 79, 230; }
+
+/* Phones and tablets */
+@media (max-width: 1024px) {
+  /* Project cards scroll like any other content. Stacked and sticky, a card taller than the
+     screen kept its buttons under the next card, where no finger could reach them. */
+  .panel { position: relative; top: auto; transform: none; filter: none; }
+  :root[data-theme="light"] .panel { filter: none; }
+  .panel-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 14px; }
+  .live-btn { min-height: 56px; font-size: 1.0625rem; }
+  .link-btn { justify-content: center; min-height: 52px; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line-3); background: var(--surface-2); }
+  .link-btn::after { display: none; }
+
+  /* Blur behind fixed bars is recomputed on every scrolled frame: a solid bar costs nothing */
+  .nav.is-scrolled { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .m-cta { background: color-mix(in srgb, var(--bg) 96%, transparent); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+  /* The silk images are the fallback for wide screens only; here they were wider than the page */
+  .silk { display: none; }
+
+  /* The main call to action keeps its light, as a sheen that only moves on the compositor */
+  .btn-glow { overflow: hidden; }
+  .btn-glow::before { animation: none; inset: 0; padding: 1.5px; background: linear-gradient(120deg, var(--ion), #fff 34%, var(--azure) 62%, var(--iris)); }
+  .btn-glow::after {
+    inset: 0 auto 0 0; width: 44%; border-radius: 0; box-shadow: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .32), transparent);
+    transform: translateX(-190%) skewX(-18deg); animation: btn-sheen 4.8s var(--ease) infinite;
+  }
+
+  .channels a { min-height: 50px; padding: 0 18px; }
+  .footer ul a { display: inline-flex; align-items: center; min-height: 44px; }
+  .footer ul { gap: 2px; }
+}
+@keyframes btn-sheen { 0%, 58% { transform: translateX(-190%) skewX(-18deg); } 100% { transform: translateX(360%) skewX(-18deg); } }
+
+/* Touch screens: no tilt in 3D and no painted sweeps while scrolling */
+@media (hover: none), (pointer: coarse) {
+  .bento { perspective: none; }
+  .panel-media { perspective: none; }
+  .panel-media > * { transform: none; transition: none; }
+  .mod, .mod.reveal.is-in { transform: none; }
+  .shot::after { display: none; }
+  .ribbon { -webkit-mask-image: none; mask-image: none; }
+}
+@media (prefers-reduced-motion: reduce) { .btn-glow::after { animation: none; } }

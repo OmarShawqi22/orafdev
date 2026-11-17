@@ -15,19 +15,22 @@
   const doc = document.documentElement;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const small = () => window.innerWidth < 760;
+  // Phones and tablets get a lighter build: fewer pixels, less geometry, half the frame rate.
+  // The silk drifts slowly, so 30 fps looks the same and leaves the phone free to scroll.
+  const lite = small() || window.matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
 
   const cv = document.createElement('canvas');
   cv.className = 'silk3d';
   cv.setAttribute('aria-hidden', 'true');
-  const gl = cv.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: true, depth: false, stencil: false, powerPreference: 'default' });
+  const gl = cv.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: !lite, depth: false, stencil: false, powerPreference: lite ? 'low-power' : 'default' });
   if (!gl) return; // the CSS silk images remain as the background
   document.body.prepend(cv);
   doc.classList.add('has-silk3d');
 
   // ---------- geometry: u = along the ribbon (0..1 over the page), s = across it (0..1) ----------
-  const SEG = 520;                       // samples along the page
-  const THREADS = small() ? 22 : 34;     // glowing threads on the silk
-  const ACROSS = 10;                     // sheet subdivisions across the width
+  const SEG = lite ? 300 : 520;                      // samples along the page
+  const THREADS = lite ? (small() ? 14 : 20) : 34;   // glowing threads on the silk
+  const ACROSS = lite ? 6 : 10;                      // sheet subdivisions across the width
 
   function buildSheet() {
     const v = [];
@@ -128,19 +131,23 @@ void main(){
     light: { c1: hex('#0E86C9'), c2: hex('#2F5BFB'), shade: hex('#6A3BE0'), pearl: hex('#9DC6FF'), alpha: 0.75, additive: false },
   };
 
-  let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-  let pageH = 1;
-  function resize() {
-    const w = window.innerWidth, h = window.innerHeight;
+  let dpr = Math.min(window.devicePixelRatio || 1, lite ? 1 : 1.5);
+  let pageH = 1, cssW = 0, cssH = 0;
+  // The canvas is 100vh tall, which does not change when a phone's address bar hides or shows,
+  // so those "resize" events no longer reallocate the drawing buffer. force = quality changed.
+  function resize(force) {
+    const w = cv.clientWidth || window.innerWidth, h = cv.clientHeight || window.innerHeight;
+    pageH = document.documentElement.scrollHeight;
+    if (!force && w === cssW && h === cssH) return;
+    cssW = w; cssH = h;
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     gl.viewport(0, 0, cv.width, cv.height);
-    pageH = document.documentElement.scrollHeight;
   }
 
   const t0 = performance.now();
   function draw(now) {
     const pal = PAL[doc.dataset.theme === 'light' ? 'light' : 'dark'];
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = cssW, h = cssH;
     const focal = h * 1.2; // camera distance: depth 0 is 1:1 with the page
     gl.blendFunc(gl.ONE, pal.additive ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
@@ -167,30 +174,40 @@ void main(){
   }
 
   // ---------- loop: rAF only (never draw inside scroll events), adaptive quality ----------
-  let raf = 0, slow = 0, frames = 0, lastT = 0, dirty = true;
+  // Quality steps down while the device keeps missing frames, and the silk switches itself off
+  // rather than slow the page: 0 = full, 1 = fewer pixels, 2 = fewer still, 3 = off.
+  let raf = 0, slow = 0, frames = 0, lastT = 0, dirty = true, tick = 0, level = 0, dead = false;
+  function stepDown() {
+    level++;
+    if (level === 1 && dpr > 1) { dpr = 1; resize(true); }
+    else if (level <= 2) { level = 2; dpr = 0.66; resize(true); }
+    else { dead = true; cv.remove(); doc.classList.remove('has-silk3d'); }
+  }
   function loop(now) {
     raf = 0;
-    if (document.hidden) return;
-    if (!reduced || dirty) { draw(now); dirty = false; }
-    if (lastT) {
+    if (document.hidden || dead) return;
+    tick++;
+    // lite: draw every second frame (the camera still follows the scroll closely enough at 30 fps)
+    if ((!reduced || dirty) && (!lite || tick % 2 === 0 || reduced)) { draw(now); dirty = false; }
+    if (lastT && now - t0 > 2500) { // the first seconds of a page load are always busy: not counted
       const dt = now - lastT; frames++;
-      if (dt > 30) slow++;
-      if (frames === 90) { // after ~1.5 s: if a third of frames were slow, render lighter
-        if (slow > 30 && dpr > 1) { dpr = 1; resize(); }
+      if (dt > 40) slow++;
+      if (frames === 90) { // every ~1.5 s: if a third of the frames were slow, render lighter
+        if (slow > 30) stepDown();
         frames = 0; slow = 0;
       }
     }
     lastT = now;
-    if (!reduced) raf = requestAnimationFrame(loop);
+    if (!reduced && !dead) raf = requestAnimationFrame(loop);
   }
-  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+  const kick = () => { if (!raf && !dead) raf = requestAnimationFrame(loop); };
 
-  resize();
+  resize(true);
   requestAnimationFrame(t => { draw(t); cv.classList.add('is-on'); });
   window.addEventListener('scroll', () => { dirty = true; kick(); }, { passive: true });
   window.addEventListener('resize', () => { resize(); dirty = true; kick(); }, { passive: true });
   window.addEventListener('load', () => { pageH = document.documentElement.scrollHeight; dirty = true; kick(); });
-  document.addEventListener('visibilitychange', () => { lastT = 0; dirty = true; kick(); });
+  document.addEventListener('visibilitychange', () => { lastT = 0; frames = 0; slow = 0; dirty = true; kick(); });
   new MutationObserver(() => { dirty = true; kick(); }).observe(doc, { attributes: true, attributeFilter: ['data-theme'] });
   if ('ResizeObserver' in window) new ResizeObserver(() => { pageH = document.documentElement.scrollHeight; }).observe(document.body);
   kick();
