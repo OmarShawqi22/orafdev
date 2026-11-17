@@ -115,8 +115,6 @@
     'A web application project, taken from interface design through to a working product.':
       'مشروع تطبيق ويب، من تصميم الواجهة حتى منتج يعمل فعلياً.',
     'Digital platform': 'منصة رقمية',
-    'The digital home of Next Stack, a separate initiative with its own identity.':
-      'الواجهة الرقمية لـ Next Stack، وهي مبادرة مستقلة لها هويتها الخاصة.',
     'An online store built around product presentation, brand and a clear path to purchase.':
       'متجر إلكتروني مبني حول عرض المنتجات والهوية التجارية ومسار شراء واضح.',
     'View case study': 'عرض دراسة الحالة',
@@ -330,7 +328,6 @@
     "Match": "التطابق",
     "Job description": "الوصف الوظيفي",
     "Requirements": "المتطلبات",
-    "Next Stack brand presentation: Code, Connect, Create Impact": "هوية Next Stack: برمج، تواصل، اصنع أثراً",
     "Israf Guard app screens showing nearby discounted meals from Malaysian restaurants": "شاشات تطبيق Israf Guard تعرض وجبات مخفضة قريبة من مطاعم ماليزية",
     "OZO Store luxury watch storefront in Arabic on laptop and phone": "واجهة متجر OZO للساعات الفاخرة بالعربية على الحاسوب والجوال",
     "Five ways we help businesses grow online, each built around a specific business need.": "خمس طرق نساعد بها الأعمال على النمو رقمياً، كل منها مبني حول احتياج محدد.",
@@ -416,7 +413,6 @@
     "Choosing a number of hours and a time range": "اختيار عدد الساعات والفترة الزمنية",
     "A clear reservation step on desktop and mobile": "خطوة حجز واضحة على الحاسوب والجوال",
     "Hourly car rental system — Orafdev": "نظام تأجير سيارات بالساعة — Orafdev",
-    "Next Stack is a student tech community built around three ideas: code, connect and create impact. It is a separate initiative with its own name and identity, not part of Orafdev.": "Next Stack مجتمع تقني طلابي قائم على ثلاث أفكار: البرمجة والتواصل وصناعة الأثر. وهو مبادرة مستقلة باسمها وهويتها الخاصة، وليس جزءاً من Orafdev.",
     "Students who want practical experience and a clearer path from their studies into the job market.": "الطلاب الذين يريدون خبرة عملية ومساراً أوضح من الدراسة إلى سوق العمل.",
     "Practical skills": "مهارات عملية",
     "Expert insights": "خبرات من المختصين",
@@ -442,6 +438,27 @@
     "Reviewing candidates from one dashboard": "مراجعة المرشحين من لوحة واحدة",
     "ATS resume matching system — Orafdev": "نظام مطابقة السير الذاتية (ATS) — Orafdev",
 
+    // Deep Focus
+    'Mobile app, productivity': 'تطبيق جوال، إنتاجية',
+    'A focus app that locks the whole phone during a session and keeps only the apps you choose. Even apps installed mid-session stay blocked.': 'تطبيق تركيز يقفل الجوال بالكامل أثناء الجلسة ولا يُبقي إلا التطبيقات التي تختارها. حتى التطبيقات التي تُثبَّت أثناء الجلسة تبقى محظورة.',
+    'Deep Focus app icon, a red shield on black, with its main features': 'أيقونة تطبيق Deep Focus، درع أحمر على خلفية سوداء، مع أبرز مزاياه',
+    'A whitelist-first focus app that locks the whole phone during a focus session, so only the tools you choose stay open.': 'تطبيق تركيز يعتمد على القائمة البيضاء: يقفل الجوال بالكامل أثناء جلسة التركيز، ولا يبقى مفتوحاً إلا ما تختاره من أدوات.',
+    'Productivity, digital wellbeing': 'الإنتاجية والصحة الرقمية',
+    'Deep Focus — Orafdev': 'Deep Focus — Orafdev',
+    'Deep Focus is a productivity app built to break phone addiction with intentional friction. Screen-time apps count hours or show warnings that are easy to skip at the moment willpower is lowest. Deep Focus stops the habit loop before it starts.': 'Deep Focus تطبيق إنتاجية صُمم لكسر إدمان الجوال عبر عوائق مقصودة. تطبيقات وقت الشاشة تحسب الساعات أو تعرض تنبيهات يسهل تجاوزها في اللحظة التي تكون فيها الإرادة في أضعف حالاتها، أما Deep Focus فيوقف حلقة العادة قبل أن تبدأ.',
+    'Students protecting their study hours, knowledge workers and creators who need long stretches of deep work, people with ADHD who need firm outside boundaries, and anyone who unlocks their phone without thinking.': 'الطلاب الذين يحمون ساعات مذاكرتهم، والعاملون وصنّاع المحتوى الذين يحتاجون فترات طويلة من العمل العميق، ومن لديهم اضطراب فرط الحركة وتشتت الانتباه ويحتاجون حدوداً خارجية صارمة، وكل من يفتح جواله دون أن ينتبه.',
+    'A whitelist, not a blacklist': 'قائمة بيضاء لا قائمة سوداء',
+    'Most blockers ban a list of apps, and the mind simply moves to the next distraction. Deep Focus does the opposite: when a session starts the whole phone is locked, and only the apps you picked for the task stay open, such as Phone, Maps or Calculator.': 'معظم تطبيقات الحظر تمنع قائمة من التطبيقات، فينتقل العقل ببساطة إلى المشتت التالي. Deep Focus يفعل العكس: عند بدء الجلسة يُقفل الجوال بالكامل، ولا يبقى مفتوحاً إلا ما اخترته للمهمة، مثل الهاتف أو الخرائط أو الحاسبة.',
+    'An app installed during a session is blocked automatically, because it is not on the list. There are no loopholes.': 'وأي تطبيق يُثبَّت أثناء الجلسة يُحظر تلقائياً لأنه ليس في القائمة. لا توجد ثغرات.',
+    'What it does': 'ماذا يقدّم',
+    'A wait, a math problem or a typing prompt before a guarded app opens': 'انتظار أو مسألة حسابية أو جملة تكتبها قبل أن يفتح تطبيق محمي',
+    'Daily time limits and launch limits for each app': 'حدود يومية للوقت ولعدد مرات الفتح لكل تطبيق',
+    'Focus modes that switch on by themselves on a schedule': 'أوضاع تركيز تعمل تلقائياً حسب جدول',
+    'A master password you can hand to a friend, so a session cannot be broken early': 'كلمة مرور رئيسية يمكنك إعطاؤها لصديق، فلا يمكن إنهاء الجلسة مبكراً',
+    'Screen-time stats that are processed and stored only on the phone': 'إحصاءات وقت الشاشة تُعالج وتُحفظ على الجوال فقط',
+    'Built to grow with its community': 'مصمم لينمو مع مجتمعه',
+    'Students get a free month of Premium, users who invite two paying friends unlock Premium for free, and creators get an affiliate dashboard for the people they bring in.': 'يحصل الطلاب على شهر مجاني من النسخة المميزة، ومن يدعو صديقين مشتركين يحصل عليها مجاناً، ولصنّاع المحتوى لوحة تسويق بالعمولة لمن يجلبونهم.',
+
     // Project pages
     'All work': 'كل الأعمال',
     'Type': 'النوع',
@@ -454,15 +471,11 @@
     'Next project': 'المشروع التالي',
     'Have a project like this in mind?': 'لديك مشروع مشابه في ذهنك؟',
     'Israf Guard — Orafdev': 'Israf Guard — Orafdev',
-    'Next Stack — Orafdev': 'Next Stack — Orafdev',
     'Ozo Store — Orafdev': 'Ozo Store — Orafdev',
     'A web application project, presented as a case study from interface design to working product.':
       'مشروع تطبيق ويب، نعرضه كدراسة حالة من تصميم الواجهة حتى المنتج العامل.',
-    'The digital presence of Next Stack.': 'الحضور الرقمي لـ Next Stack.',
     'An e-commerce project: an online store built around product presentation, brand and a clear path to purchase.':
       'مشروع تجارة إلكترونية: متجر مبني حول عرض المنتجات والهوية التجارية ومسار شراء واضح.',
-    'Next Stack is a separate project and initiative with its own name and identity. It is not part of Orafdev; this page describes the digital work done for it.':
-      'Next Stack مشروع ومبادرة مستقلة باسمها وهويتها الخاصة، وليست جزءاً من Orafdev. تعرض هذه الصفحة العمل الرقمي المنجز لها.',
     'Israf Guard is a web application from the Orafdev portfolio.': 'Israf Guard تطبيق ويب ضمن أعمال Orafdev.',
     'Ozo Store is an e-commerce project from the Orafdev portfolio.': 'Ozo Store مشروع تجارة إلكترونية ضمن أعمال Orafdev.',
     'We are happy to walk you through this project in a call: the problem it solves, the decisions behind the interface, and how it was built.':

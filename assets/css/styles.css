@@ -1255,3 +1255,66 @@ html.has-silk3d .silk { display: none; }
   html { scrollbar-width: thin; scrollbar-color: #2F5BFB #040817; }
   :root[data-theme="light"] { scrollbar-color: #2F5BFB #E9EDFA; }
 }
+
+/* Endless animations sleep while they are off screen (main.js "Off-screen animations sleep"). */
+.fx-paused, .fx-paused::before, .fx-paused::after { animation-play-state: paused !important; }
+
+/* ==========================================================================
+   Social and contact buttons in each platform's own colour
+   (contact section .channels and footer .socials; the glass look stays)
+   ========================================================================== */
+[data-channel="whatsapp"]  { --brand-rgb: 37, 211, 102;  --brand-bg: #25D366; }
+[data-channel="instagram"] { --brand-rgb: 225, 48, 108;  --brand-bg: linear-gradient(45deg, #F58529 0%, #DD2A7B 45%, #8134AF 75%, #515BD4 100%); }
+[data-channel="facebook"]  { --brand-rgb: 24, 119, 242;  --brand-bg: #1877F2; }
+[data-channel="linkedin"]  { --brand-rgb: 10, 102, 194;  --brand-bg: #0A66C2; }
+[data-channel="email"]     { --brand-rgb: 47, 123, 255;  --brand-bg: linear-gradient(135deg, #19D3FF, #2F7BFF 55%, #6B4BFF); }
+[data-channel="github"]    { --brand-rgb: 139, 148, 158; --brand-bg: #24292F; }
+
+/* the icon sits on a badge filled with the platform colour */
+:is(.channels, .socials) svg.ig {
+  width: 30px; height: 30px; padding: 6px; border-radius: 9px; box-sizing: border-box;
+  background: var(--brand-bg); stroke: #fff;
+  box-shadow: 0 6px 16px -6px rgba(var(--brand-rgb), .75);
+  transition: transform .3s var(--ease-out), box-shadow .3s var(--ease-out);
+}
+:is(.channels, .socials) svg.ig .ig-dot { fill: #fff; }
+/* Facebook and LinkedIn glyphs carry their own frame: on a badge the badge is the frame */
+:is(.channels, .socials) :is([data-channel="facebook"], [data-channel="linkedin"]) svg.ig rect { display: none; }
+:is(.channels, .socials) :is([data-channel="facebook"], [data-channel="linkedin"]) svg.ig :is(path, circle) { transform-box: view-box; transform-origin: 12px 12px; transform: scale(1.42); }
+:is(.channels, .socials) [data-channel="facebook"] svg.ig path { transform: translateX(-.6px) scale(1.42); }
+
+/* contact pills: tinted border, light up in their colour on hover, focus and press */
+.channels a {
+  min-height: 44px; padding-inline: 7px 16px;
+  border-color: rgba(var(--brand-rgb), .38);
+  transition: border-color .25s, background .25s, box-shadow .3s, transform .2s;
+}
+.channels a:hover, .channels a:focus-visible, .channels a:active {
+  border-color: rgba(var(--brand-rgb), .85);
+  background: rgba(var(--brand-rgb), .13);
+  box-shadow: 0 12px 28px -14px rgba(var(--brand-rgb), .8), inset 0 0 0 1px rgba(var(--brand-rgb), .25);
+}
+.channels a:hover, .channels a:focus-visible { transform: translateY(-2px); }
+.channels a:hover svg.ig, .channels a:focus-visible svg.ig { transform: scale(1.08) rotate(-4deg); box-shadow: 0 8px 20px -6px rgba(var(--brand-rgb), .95); }
+.channels a:focus-visible { outline: 2px solid rgba(var(--brand-rgb), .9); outline-offset: 3px; }
+
+/* footer links: same badges, the label takes the colour on hover and press */
+.socials a { min-height: 40px; border-radius: 10px; transition: color .25s; }
+.socials a:hover, .socials a:focus-visible, .socials a:active { color: rgb(var(--brand-rgb)); }
+.socials a:hover svg.ig, .socials a:focus-visible svg.ig { transform: scale(1.08) rotate(-4deg); }
+:root[data-theme="light"] .socials a:hover, :root[data-theme="light"] .socials a:active { filter: brightness(.85); }
+
+/* phones: full-width email and WhatsApp, the three networks as equal tiles in one row */
+@media (max-width: 600px) {
+  .channels { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+  .channels li { grid-column: span 2; min-width: 0; }
+  .channels li:is([data-channel="email"], [data-channel="whatsapp"], [data-channel="github"]) { grid-column: 1 / -1; }
+  .channels a { width: 100%; min-height: 50px; }
+  .channels li:is([data-channel="instagram"], [data-channel="facebook"], [data-channel="linkedin"]) a {
+    flex-direction: column; justify-content: center; gap: 7px; min-height: 84px; padding: 12px 6px;
+    font-size: .8125rem; text-align: center;
+  }
+  .channels li:is([data-channel="instagram"], [data-channel="facebook"], [data-channel="linkedin"]) svg.ig { width: 34px; height: 34px; padding: 7px; }
+  .channels a span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .socials a { min-height: 44px; }
+}

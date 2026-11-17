@@ -27,7 +27,7 @@ window.ORAFDEV = {
     "car-rental": { live: "https://car-web-sandy.vercel.app", source: "", tech: ["Next.js", "Supabase"] },
     "aiu-shop": { live: "https://www.aiushop.net", source: "", tech: [] },
     "attoor": { live: "https://arafatalhomedy.github.io/attoor-website/", source: "", tech: ["React", "Vite"] },
-    "next-stack": { live: "", source: "", tech: [] },
+    "deep-focus": { live: "", source: "", tech: [] },
     "israf-guard": { live: "", source: "", tech: [] },
     "ozo-store":  { live: "", source: "", tech: [] },
     "ats-matching": { live: "", source: "", tech: [] },

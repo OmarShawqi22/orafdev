@@ -581,6 +581,30 @@
     syncBar();
   }
 
+  /* ---------- Off-screen animations sleep ----------
+     Endless CSS animations (button light, pulses, orbits, ribbon, hero glows) keep running in
+     sections the visitor has already scrolled past, and while the 3D silk redraws every frame the
+     browser restyles and repaints every one of them, every frame. That was most of the phone lag in
+     the projects section. Pause the ones that are off screen and wake them a little before they
+     scroll back in: whatever is on screen looks and moves exactly as before. */
+  if ('IntersectionObserver' in window && document.getAnimations) {
+    const watched = new WeakSet();
+    const sleeper = new IntersectionObserver(entries => {
+      entries.forEach(e => e.target.classList.toggle('fx-paused', !e.isIntersecting));
+    }, { rootMargin: '30% 0px' });
+    const scanAnimations = () => {
+      document.getAnimations().forEach(a => {
+        const el = a.effect && a.effect.target;
+        if (!el || watched.has(el) || typeof CSSAnimation === 'undefined' || !(a instanceof CSSAnimation)) return;
+        if (a.effect.getTiming().iterations !== Infinity) return; // one-off entrances are left alone
+        watched.add(el);
+        sleeper.observe(el);
+      });
+    };
+    scanAnimations();
+    window.addEventListener('load', () => setTimeout(scanAnimations, 800));
+  }
+
   /* ---------- Initial language + theme state ---------- */
   if (doc.lang === 'ar') I18N.apply('ar');
   syncLangBtn();
