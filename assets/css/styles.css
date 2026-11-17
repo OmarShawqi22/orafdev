@@ -383,21 +383,17 @@ p { text-wrap: pretty; }
    ========================================================================== */
 .deck { display: grid; gap: 28px; }
 .panel {
-  --shrink: 0;
-  position: sticky; top: calc(var(--nav-h) + 8px);
+  position: sticky; top: calc(var(--nav-h) + 8px); isolation: isolate; /* its own stacking context, as the old filter gave it */
   display: grid; grid-template-columns: 5fr 7fr; min-height: min(74vh, 640px);
   border-radius: var(--r-xl); border: 1px solid var(--line); overflow: hidden;
   background: radial-gradient(70% 90% at 100% 0%, rgba(var(--tint), .13), transparent 60%), linear-gradient(180deg, var(--surface), var(--bg-2));
   box-shadow: var(--shadow-2);
   transform-origin: 50% 0;
-  transform: scale(calc(1 - var(--shrink) * .06));
-  filter: brightness(calc(1 - var(--shrink) * .35));
 }
 .panel-info { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: clamp(28px, 3.6vw, 52px); position: relative; z-index: 1; }
 .panel-num { font-family: var(--font-display); font-size: .9375rem; font-weight: 600; color: rgb(var(--tint)); letter-spacing: .02em; display: flex; align-items: center; gap: 12px; }
 .panel-num::after { content: ""; width: 40px; height: 1px; background: rgba(var(--tint), .5); }
 :root[data-theme="light"] .panel-num { filter: brightness(.65) saturate(1.3); }
-:root[data-theme="light"] .panel { filter: brightness(calc(1 - var(--shrink) * .06)); }
 .project-cat { font-size: .875rem; color: var(--muted); margin-top: 10px; }
 .panel-title { font-size: clamp(2rem, 3.6vw, 3.25rem); }
 .panel-desc { color: var(--fg-2); max-width: 30em; }
@@ -412,14 +408,17 @@ p { text-wrap: pretty; }
   -webkit-mask-image: radial-gradient(70% 70% at 60% 50%, #000, transparent); mask-image: radial-gradient(70% 70% at 60% 50%, #000, transparent);
   opacity: .7;
 }
-.panel-media > * { --rx: 0deg; --ry: 0deg; transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .6s var(--ease-out); }
+.panel-media > * { transform: rotateX(0deg) rotateY(0deg); transition: transform .6s var(--ease-out); } /* main.js writes the tilt straight to transform */
 
 /* Real project images */
 .shot { position: relative; width: 100%; max-width: 860px; border-radius: 14px; overflow: hidden; box-shadow: 0 50px 90px -40px rgba(0, 3, 20, .8), 0 0 0 1px var(--line-2); background: #050A1F; }
-.shot img { width: 100%; height: auto; transition: transform 1.2s var(--ease-out); }
+.shot img { width: 100%; height: auto; transition: transform 1.2s var(--ease-out); will-change: transform; }
 .panel:hover .shot img, .panel.is-live .shot img { transform: scale(1.03); }
-.shot::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .07) 50%, transparent 65%); background-size: 250% 100%; background-position: 130% 0; transition: background-position 1.2s var(--ease-out); }
-.panel:hover .shot::after, .panel.is-live .shot::after { background-position: -30% 0; }
+/* The light sweep: the same gradient as before (115deg band over a box 2.5x the image's width), now slid with
+   transform instead of animating background-position, so it no longer repaints the image on every frame.
+   translateX(-78%) and (18%) of the 250% box are exactly background-position 130% and -30%. */
+.shot::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 250%; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .07) 50%, transparent 65%); transform: translateX(-78%); transition: transform 1.2s var(--ease-out); will-change: transform; }
+.panel:hover .shot::after, .panel.is-live .shot::after { transform: translateX(18%); }
 .shot-frame .mk-bar { padding: 12px 14px; border-bottom: 1px solid var(--line); background: #081130; }
 .shot-crop img { aspect-ratio: 2.15; object-fit: cover; object-position: top; }
 
@@ -1264,7 +1263,7 @@ html.has-silk3d .silk { display: none; }
    the whole layer underneath every frame (the phone contact bar, each project card's text block). In-app
    browsers such as Instagram's could not keep up and showed project cards blank or half drawn while
    scrolling. Same drawing, same look; only where it is drawn changes. */
-.live-btn::before, .btn-glow::before, .btn-glow::after { will-change: transform; }
+
 
 /* ==========================================================================
    Social and contact buttons in each platform's own colour
@@ -1325,3 +1324,92 @@ html.has-silk3d .silk { display: none; }
   .channels a span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .socials a { min-height: 44px; }
 }
+
+/* ==========================================================================
+   Project deck: every card can be read to the end before the next slides over it
+   ========================================================================== */
+/* A card sticks only once it is fully on screen: its top stops under the nav, or higher for a card taller
+   than the screen, so that its bottom (the buttons) sits just above the phone contact bar. --card-h is the
+   card's own height (main.js); svh is the small viewport, so the address bar showing or hiding never moves it. */
+.panel { top: min(calc(var(--nav-h) + 8px), calc(100vh - var(--card-h, 0px) - var(--bar-h, 16px))); }
+@supports (height: 100svh) { .panel { top: min(calc(var(--nav-h) + 8px), calc(100svh - var(--card-h, 0px) - var(--bar-h, 16px))); } }
+@media (max-width: 1024px) { :root { --bar-h: 96px; } } /* .m-cta: 66px bar, 12px from the bottom, plus a gap */
+/* The receding card darkens under a black layer: black at opacity a is exactly brightness(1 - a), without
+   re-filtering the whole card on every frame. main.js sets its opacity (0 to .35, .06 in light mode). */
+.panel-dim { position: absolute; inset: 0; z-index: 3; border-radius: inherit; background: #000; opacity: 0; pointer-events: none; will-change: opacity; }
+@media (prefers-reduced-motion: reduce) { .panel { top: auto; } .panel-dim { display: none; } }
+/* Phones: a more compact card so a whole project fits on the screen. The visuals keep their proportions
+   (scaled, never cropped) and the two links share one row. */
+@media (max-width: 600px) {
+  .panel-media { padding: 14px 16px; }
+  .duo-shots, .trio-shots { width: 86%; margin-inline: auto; }
+  .panel-media > .shot-frame { width: 86%; }
+  .phones { height: 236px; }
+  .panel-actions .live-btn { flex: 1 1 auto; }
+}
+/* Phones and tablets: a pause between cards. A card that has just stuck stays still and fully readable
+   for this stretch of scrolling before the next one starts to slide over it. */
+@media (max-width: 900px) {
+  .deck { gap: min(34vh, 280px); }
+}
+
+/* ==========================================================================
+   Running border lights, rotated on the GPU
+   The light around .live-btn and .btn-glow used to be a conic gradient whose start angle (--ang) was animated:
+   restyle and repaint on every frame, about 10 ms of main-thread work per frame on a mid-range phone.
+   It is now the same conic gradient, standing still, on a square that rotates behind the same ring-shaped mask
+   (main.js adds <span class="glow-ring"><i></i></span>). A conic gradient "from a" is that gradient rotated by a
+   around its centre, so every point of the ring shows the same colour at the same moment as before; same
+   colours, direction and speed. Rotation runs on the compositor, so it costs no main-thread work.
+   ========================================================================== */
+.has-ring::before { content: none; }
+.glow-ring {
+  position: absolute; inset: -1px; z-index: -1; border-radius: inherit; padding: 1.5px; overflow: hidden; pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.glow-ring > i {
+  position: absolute; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; /* covers the ring at every angle */
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 200deg, var(--ion) 260deg, var(--iris) 310deg, transparent 360deg);
+  transform: translate(-50%, -50%) rotate(0deg); will-change: transform;
+  animation: ring-spin 3.6s linear infinite;
+}
+.btn-glow > .glow-ring { inset: -2px; padding: 2px; }
+.btn-glow > .glow-ring > i { background: conic-gradient(from 0deg, var(--ion), var(--azure), var(--iris), #fff 300deg, var(--ion)); animation-duration: 3.2s; }
+@keyframes ring-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.live-btn:hover > .glow-ring > i { animation-duration: 1.4s; }
+.live-btn.is-soon > .glow-ring { opacity: .35; }
+.live-btn.is-soon > .glow-ring > i { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .glow-ring > i { animation: none; }
+  .live-btn > .glow-ring { opacity: .6; }
+  .live-btn > .glow-ring > i { background: linear-gradient(90deg, var(--ion), var(--iris)); }
+}
+
+/* The call-to-action pulse, on the GPU (main.js "Call-to-action pulse"). It replaces .btn-glow::after, whose
+   box-shadow (0 -> 16px spread, alpha .45 -> 0) was repainted every frame: the <i> has the button's shape and the
+   pulse colour, grows so each edge moves out 16px, and fades with the same eased progress; the mask on
+   .glow-pulse hides the button area, so only the ring outside the button shows, as the shadow did. */
+.has-pulse::after { content: none; }
+.glow-pulse {
+  --pr: 14px; /* the button's corner radius, set by main.js */
+  position: absolute; inset: -18px; padding: 18px; z-index: -1; pointer-events: none;
+  /* everything, minus the button's rounded shape (two bands and four corner circles over the content box) */
+  -webkit-mask-image: linear-gradient(#000 0 0), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  mask-image: linear-gradient(#000 0 0), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), radial-gradient(circle closest-side, #000 calc(100% - .6px), transparent), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-origin: border-box, content-box, content-box, content-box, content-box, content-box, content-box;
+  mask-origin: border-box, content-box, content-box, content-box, content-box, content-box, content-box;
+  -webkit-mask-clip: border-box; mask-clip: border-box;
+  -webkit-mask-size: 100% 100%, calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), 100% calc(100% - 2 * var(--pr)), calc(100% - 2 * var(--pr)) 100%;
+  mask-size: 100% 100%, calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), calc(2 * var(--pr)) calc(2 * var(--pr)), 100% calc(100% - 2 * var(--pr)), calc(100% - 2 * var(--pr)) 100%;
+  -webkit-mask-position: 0 0, left top, right top, left bottom, right bottom, center, center;
+  mask-position: 0 0, left top, right top, left bottom, right bottom, center, center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-composite: source-out, source-over, source-over, source-over, source-over, source-over, source-over;
+  mask-composite: subtract, add, add, add, add, add, add;
+}
+.glow-pulse > i { position: absolute; inset: 18px; background: rgba(var(--ion-rgb), .45); opacity: 0; will-change: transform, opacity; }
+
+/* While a scroll is in progress the decorative button lights hold still (main.js "Lights rest while scrolling"):
+   the main thread then only has to move the page and the 3D silk. They carry on the moment scrolling stops. */
+html.is-scrolling .glow-ring > i { animation-play-state: paused; }

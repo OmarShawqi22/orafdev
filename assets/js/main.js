@@ -7,6 +7,86 @@
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const root = document.body.dataset.root || '';
 
+  /* ---------- Running border lights ----------
+     The light that runs around .live-btn and .btn-glow is a still conic gradient on a square that
+     rotates behind a ring-shaped mask (styles.css "Running border lights"), so the GPU turns it. */
+  $$('.live-btn, .btn-glow').forEach(b => {
+    if (b.querySelector(':scope > .glow-ring')) return;
+    const ring = document.createElement('span');
+    ring.className = 'glow-ring'; ring.setAttribute('aria-hidden', 'true');
+    ring.appendChild(document.createElement('i'));
+    b.prepend(ring);
+    b.classList.add('has-ring');
+  });
+
+  /* ---------- Call-to-action pulse ----------
+     Same timing and curve as the old @keyframes cta-pulse (2.8s, --ease-out, grows over the first 70%), run
+     by the compositor; each button gets its own scale so every edge moves out exactly 16px. It sleeps while
+     its button is off screen. */
+  if (!reduced && Element.prototype.animate) {
+    const ease = getComputedStyle(doc).getPropertyValue('--ease-out').trim() || 'ease-out';
+    const pulses = [];
+    const syncPulse = p => { if (p.anim) (p.visible !== false && !doc.classList.contains('is-scrolling')) ? p.anim.play() : p.anim.pause(); };
+    $$('.btn-glow').forEach(b => {
+      if (b.querySelector(':scope > .glow-pulse')) return;
+      const wrap = document.createElement('span');
+      wrap.className = 'glow-pulse'; wrap.setAttribute('aria-hidden', 'true');
+      const dot = document.createElement('i');
+      wrap.appendChild(dot);
+      b.prepend(wrap);
+      b.classList.add('has-pulse');
+      pulses.push({ b, dot, anim: null });
+    });
+    const start = p => {
+      const w = p.b.offsetWidth, h = p.b.offsetHeight;
+      if (!w || !h) return;
+      const radius = getComputedStyle(p.b).borderTopLeftRadius;
+      p.dot.style.borderRadius = radius;
+      p.dot.parentElement.style.setProperty('--pr', radius);
+      const grown = `scale(${(1 + 32 / w).toFixed(4)}, ${(1 + 32 / h).toFixed(4)})`;
+      const t = p.anim ? p.anim.currentTime : 0;
+      if (p.anim) p.anim.cancel();
+      p.anim = p.dot.animate([
+        { offset: 0, transform: 'scale(1, 1)', opacity: 1, easing: ease },
+        { offset: 0.7, transform: grown, opacity: 0 },
+        { offset: 1, transform: grown, opacity: 0 },
+      ], { duration: 2800, iterations: Infinity });
+      p.anim.currentTime = t || 0;
+      syncPulse(p);
+    };
+    pulses.forEach(start);
+    window.addEventListener('resize', () => pulses.forEach(start));
+    document.fonts && document.fonts.ready.then(() => pulses.forEach(start));
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(entries => entries.forEach(e => {
+        const p = pulses.find(x => x.b === e.target);
+        if (!p) return;
+        p.visible = e.isIntersecting;
+        syncPulse(p);
+      }), { rootMargin: '30% 0px' });
+      pulses.forEach(p => io.observe(p.b));
+    }
+    window.addEventListener('scrollrest', () => pulses.forEach(syncPulse));
+    window.addEventListener('scrollbusy', () => pulses.forEach(syncPulse));
+  }
+
+  /* ---------- Lights rest while scrolling ----------
+     html.is-scrolling is set while the page is moving and cleared 180 ms after it stops. */
+  {
+    let restTimer = 0;
+    window.addEventListener('scroll', () => {
+      if (!doc.classList.contains('is-scrolling')) {
+        doc.classList.add('is-scrolling');
+        window.dispatchEvent(new Event('scrollbusy'));
+      }
+      clearTimeout(restTimer);
+      restTimer = setTimeout(() => {
+        doc.classList.remove('is-scrolling');
+        window.dispatchEvent(new Event('scrollrest'));
+      }, 180);
+    }, { passive: true });
+  }
+
   /* ---------- Page entrance ---------- */
   const veil = $('.page-veil');
   let fromNav = false;
@@ -257,10 +337,9 @@
       media.addEventListener('pointermove', e => {
         const r = media.getBoundingClientRect();
         const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-        inner.style.setProperty('--ry', `${x * 8}deg`);
-        inner.style.setProperty('--rx', `${-y * 6}deg`);
+        inner.style.transform = `rotateX(${-y * 6}deg) rotateY(${x * 8}deg)`;
       });
-      media.addEventListener('pointerleave', () => { inner.style.setProperty('--rx', '0deg'); inner.style.setProperty('--ry', '0deg'); });
+      media.addEventListener('pointerleave', () => { inner.style.transform = ''; });
     });
   }
 
@@ -301,17 +380,17 @@
         card.style.setProperty('--lx', '50%');
         card.style.setProperty('--ly', `${((1 - d) * 50).toFixed(1)}%`);
       });
-      medias.forEach(media => {
-        const inner = media.firstElementChild;
-        const r = media.getBoundingClientRect();
+      const mediaRects = medias.map(media => media.getBoundingClientRect());
+      const liveRects = live.map(el => el.getBoundingClientRect());
+      medias.forEach((media, i) => {
+        const inner = media.firstElementChild, r = mediaRects[i];
         if (!inner || r.bottom < 0 || r.top > vh) return;
         const d = offset(r);
-        inner.style.setProperty('--rx', `${(-d * 9).toFixed(2)}deg`);
-        inner.style.setProperty('--ry', `${(d * 6).toFixed(2)}deg`);
+        inner.style.transform = `rotateX(${(-d * 9).toFixed(2)}deg) rotateY(${(d * 6).toFixed(2)}deg)`;
       });
       // the card in the middle of the screen plays its hover animation
-      live.forEach(el => {
-        const r = el.getBoundingClientRect();
+      live.forEach((el, i) => {
+        const r = liveRects[i];
         el.classList.toggle('is-live', r.top < vh * 0.64 && r.bottom > vh * 0.36);
       });
     };
@@ -403,6 +482,18 @@
 
   /* ---------- Scroll-linked: work deck, system, timeline, CTA ---------- */
   const panels = $$('.panel');
+  // each card gets a black layer for the "recede" darkening, and knows its own height so it can stick
+  // only once it is fully on screen (styles.css: .panel top, .panel-dim)
+  const dims = panels.map(p => {
+    const d = document.createElement('span');
+    d.className = 'panel-dim'; d.setAttribute('aria-hidden', 'true');
+    p.appendChild(d);
+    return d;
+  });
+  const measureCards = () => panels.forEach(p => p.style.setProperty('--card-h', `${p.offsetHeight}px`));
+  measureCards();
+  if ('ResizeObserver' in window) { const ro = new ResizeObserver(measureCards); panels.forEach(p => ro.observe(p)); }
+  window.addEventListener('load', measureCards);
   const system = $('[data-system]');
   const systemFill = $('.system-fill');
   const stages = $$('[data-stage]');
@@ -417,16 +508,14 @@
     const vh = window.innerHeight;
     // Each project panel recedes as the next one slides over it
     const stacking = !reduced;
+    const dimMax = doc.dataset.theme === 'light' ? 0.06 : 0.35;
+    const rects = panels.map(p => p.getBoundingClientRect()); // read everything first, then write
     panels.forEach((p, i) => {
-      const nextP = panels[i + 1];
-      let s = 0;
-      if (stacking && nextP) {
-        const pr = p.getBoundingClientRect(), nr = nextP.getBoundingClientRect();
-        s = Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height));
-      }
-      p.style.setProperty('--shrink', s.toFixed(3));
-      const r = p.getBoundingClientRect();
-      p.classList.toggle('is-current', r.top < vh * 0.6 && r.bottom > vh * 0.3);
+      const pr = rects[i], nr = rects[i + 1];
+      const s = stacking && nr ? Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height)) : 0;
+      p.style.transform = s ? `scale(${(1 - s * 0.06).toFixed(4)})` : '';
+      dims[i].style.opacity = s ? (s * dimMax).toFixed(3) : '0';
+      p.classList.toggle('is-current', pr.top < vh * 0.6 && pr.bottom > vh * 0.3);
     });
     if (system && systemFill) {
       const r = system.getBoundingClientRect();
@@ -453,6 +542,7 @@
   };
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   window.addEventListener('resize', onScroll);
+  new MutationObserver(onScroll).observe(doc, { attributes: true, attributeFilter: ['data-theme'] }); // the dim strength differs per theme
   onScroll();
 
   /* ---------- Technology stack ---------- */
