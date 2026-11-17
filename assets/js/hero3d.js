@@ -248,11 +248,9 @@ async function init() {
 
   /* ---------- layout ---------- */
   let layout = { x: 0, y: 0, s: 1 };
-  let sizeW = 0, sizeH = 0;
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    // phones fire "resize" when the address bar hides or shows: only a real size change reallocates the buffer
-    if (w !== sizeW || h !== sizeH) { sizeW = w; sizeH = h; renderer.setSize(w, h, false); }
+    renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     if (w >= 1025) layout = { x: (4.6 + Math.max(0, 1440 - w) * 0.002) * Math.min(1.2, camera.aspect / 1.6), y: 0.1, s: 0.8 };
@@ -283,7 +281,7 @@ async function init() {
       mouse.ty = (e.clientY / window.innerHeight) * 2 - 1;
     }, { passive: true });
   }
-  let scrollP = 0, shownP = -1;
+  let scrollP = 0;
   window.addEventListener('scroll', () => { scrollP = Math.min(1, window.scrollY / hero.clientHeight); }, { passive: true });
 
   /* ---------- loop ---------- */
@@ -336,7 +334,7 @@ async function init() {
     camera.position.x = mouse.x * 0.4;
     camera.position.y = -mouse.y * 0.25;
     camera.lookAt(0, 0, 0);
-    if (scrollP !== shownP) { shownP = scrollP; canvas.style.opacity = String(1 - scrollP * 0.85); }
+    canvas.style.opacity = String(1 - scrollP * 0.85);
 
     renderer.render(scene, camera);
     if (running) raf = requestAnimationFrame(frame);

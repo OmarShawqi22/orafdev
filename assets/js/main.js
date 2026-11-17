@@ -18,50 +18,6 @@
   }
   requestAnimationFrame(() => document.body.classList.add('is-loaded'));
 
-  /* ---------- Main buttons: the light around the edge and the pulse, on the compositor ---------- */
-  // Same look as the old ::before / ::after animations, but only transform and opacity move,
-  // so the GPU runs them and the main thread stays free (see styles.css "v4").
-  $$('.btn-glow').forEach(b => {
-    b.insertAdjacentHTML('afterbegin', '<span class="glow-pulse" aria-hidden="true"></span><span class="glow-ring" aria-hidden="true"><i></i></span><span class="glow-bg" aria-hidden="true"></span>');
-    b.classList.add('has-fx');
-  });
-  if (!reduced && Element.prototype.animate) {
-    // The pulse grows 16px past every edge, so its scale depends on the button's size.
-    const runPulse = p => {
-      const w = p.offsetWidth, h = p.offsetHeight;
-      if (!w || !h || (p._w === w && p._h === h)) return;
-      p._w = w; p._h = h;
-      const big = `scale(${((w + 32) / w).toFixed(4)}, ${((h + 32) / h).toFixed(4)})`;
-      const at = p._anim ? p._anim.currentTime : 0;
-      if (p._anim) p._anim.cancel();
-      p._anim = p.animate([
-        { transform: 'scale(1)', opacity: 0.45, easing: 'cubic-bezier(.16, 1, .3, 1)' },
-        { transform: big, opacity: 0, offset: 0.7 },
-        { transform: big, opacity: 0 },
-      ], { duration: 2800, iterations: Infinity });
-      p._anim.currentTime = at;
-    };
-    const pulseEls = $$('.glow-pulse');
-    if ('ResizeObserver' in window) {
-      const ro = new ResizeObserver(es => es.forEach(e => runPulse(e.target)));
-      pulseEls.forEach(p => ro.observe(p));
-    } else pulseEls.forEach(runPulse);
-  }
-
-  /* ---------- Animations off the screen are paused ---------- */
-  // The 3D layers draw every frame, and on every drawn frame the browser also restyles every running
-  // CSS animation on the page, even ones far off screen (the ribbon, the orbits, the hero lights).
-  // Pausing what cannot be seen removes that work; it resumes, unchanged, as soon as it scrolls in.
-  if ('IntersectionObserver' in window && !reduced) {
-    const fxIO = new IntersectionObserver(es => es.forEach(e => {
-      const off = !e.isIntersecting;
-      e.target.classList.toggle('fx-paused', off);
-      const p = e.target.classList.contains('btn-glow') && $('.glow-pulse', e.target);
-      if (p && p._anim) { if (off) p._anim.pause(); else p._anim.play(); }
-    }), { rootMargin: '15% 0px 15% 0px' });
-    $$('.hero, .ribbon, .bento, .timeline, .cta, .more-work, .btn-glow, .live-btn, .wa-float').forEach(el => fxIO.observe(el));
-  }
-
   /* ---------- Config: contacts, links, screenshots ---------- */
   const c = cfg.contact || {};
   const waText = encodeURIComponent(cfg.whatsappMessage || '');
@@ -173,8 +129,7 @@
 
   /* ---------- Navigation ---------- */
   const nav = $('[data-nav]');
-  let navOn = null;
-  const onScrollNav = () => { const on = window.scrollY > 24; if (nav && on !== navOn) { navOn = on; nav.classList.toggle('is-scrolled', on); } };
+  const onScrollNav = () => nav && nav.classList.toggle('is-scrolled', window.scrollY > 24);
   onScrollNav();
   window.addEventListener('scroll', onScrollNav, { passive: true });
 
@@ -266,26 +221,21 @@
     if (cursor) {
       document.body.classList.add('has-cursor');
       const dot = $('.cursor-dot', cursor), ring = $('.cursor-ring', cursor);
-      let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y, cRaf = 0, hidden = false, hov = null;
-      // The ring eases after the pointer and the loop sleeps once it has caught up,
-      // so a still mouse costs nothing.
-      const loop = () => {
-        rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
-        if (Math.abs(x - rx) < 0.1 && Math.abs(y - ry) < 0.1) { rx = x; ry = y; cRaf = 0; }
-        else cRaf = requestAnimationFrame(loop);
-        ring.style.transform = `translate(${rx}px, ${ry}px)`;
-      };
+      let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y;
       window.addEventListener('pointermove', e => {
         x = e.clientX; y = e.clientY;
         dot.style.transform = `translate(${x}px, ${y}px)`;
-        if (hidden) { hidden = false; cursor.classList.remove('is-hidden'); }
-        if (!cRaf) cRaf = requestAnimationFrame(loop);
+        cursor.classList.remove('is-hidden');
       }, { passive: true });
-      document.addEventListener('pointerleave', () => { hidden = true; cursor.classList.add('is-hidden'); });
+      document.addEventListener('pointerleave', () => cursor.classList.add('is-hidden'));
       document.addEventListener('pointerover', e => {
-        const on = !!e.target.closest('a, button, [data-tilt], select, label, .plate');
-        if (on !== hov) { hov = on; cursor.classList.toggle('is-hover', on); }
+        cursor.classList.toggle('is-hover', !!e.target.closest('a, button, [data-tilt], select, label, .plate'));
       });
+      const loop = () => {
+        rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
+        ring.style.transform = `translate(${rx}px, ${ry}px)`;
+        requestAnimationFrame(loop);
+      };
       loop();
     }
 
@@ -326,29 +276,48 @@
     });
   };
   fitMocks();
-  // Phones fire "resize" every time the address bar hides or shows. Only a new width needs work.
-  const widthJobs = [fitMocks];
-  let lastW = window.innerWidth;
-  window.addEventListener('resize', () => {
-    if (window.innerWidth === lastW) return;
-    lastW = window.innerWidth;
-    widthJobs.forEach(fn => fn());
-  });
+  window.addEventListener('resize', fitMocks);
 
-  /* ---------- Touch screens: the card in the middle of the screen plays its hover animation ---------- */
-  // An observer does this without measuring layout on every scroll frame, so scrolling stays smooth on phones.
-  const hasIO = 'IntersectionObserver' in window;
-  const touchLive = !finePointer && !reduced;
-  if (!finePointer) document.body.classList.add('has-touch');
-  if (hasIO) {
-    const centre = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.target.classList.contains('panel')) e.target.classList.toggle('is-current', e.isIntersecting);
-        if (touchLive) e.target.classList.toggle('is-live', e.isIntersecting);
+  /* ---------- Touch screens: the same motion, driven by scrolling ---------- */
+  if (!finePointer && !reduced) {
+    document.body.classList.add('has-touch');
+    const tilts = $$('[data-tilt]');
+    const medias = $$('[data-tilt-media]');
+    const deck = $$('.panel');
+    const live = [...tilts, ...deck, ...$$('.pillar'), ...$$('.plan')];
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    let queued = false;
+    const touchFx = () => {
+      queued = false;
+      const vh = window.innerHeight;
+      // -1 above the middle of the screen .. 0 centred .. 1 below
+      const offset = r => clamp(((r.top + r.height / 2) / vh - 0.5) * 2, -1, 1);
+      tilts.forEach(card => {
+        const r = card.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) return;
+        const d = offset(r);
+        card.style.setProperty('--rx', `${(-d * 7).toFixed(2)}deg`);
+        card.style.setProperty('--ry', `${(d * 3).toFixed(2)}deg`);
+        card.style.setProperty('--lx', '50%');
+        card.style.setProperty('--ly', `${((1 - d) * 50).toFixed(1)}%`);
       });
-    }, { rootMargin: '-36% 0px -36% 0px' });
-    const liveEls = touchLive ? [...$$('[data-tilt]'), ...$$('.pillar'), ...$$('.plan')] : [];
-    [...$$('.panel'), ...liveEls].forEach(el => centre.observe(el));
+      medias.forEach(media => {
+        const inner = media.firstElementChild;
+        const r = media.getBoundingClientRect();
+        if (!inner || r.bottom < 0 || r.top > vh) return;
+        const d = offset(r);
+        inner.style.setProperty('--rx', `${(-d * 9).toFixed(2)}deg`);
+        inner.style.setProperty('--ry', `${(d * 6).toFixed(2)}deg`);
+      });
+      // the card in the middle of the screen plays its hover animation
+      live.forEach(el => {
+        const r = el.getBoundingClientRect();
+        el.classList.toggle('is-live', r.top < vh * 0.64 && r.bottom > vh * 0.36);
+      });
+    };
+    window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(touchFx); } }, { passive: true });
+    window.addEventListener('resize', touchFx);
+    touchFx();
   }
 
   /* ---------- Experience counters ---------- */
@@ -442,67 +411,48 @@
   const fill = $('.tl-fill');
   const ctaCore = $('.cta-core');
   const cta = $('.cta');
-  // The stacking deck only runs where the panels are sticky (wide screens). On phones the cards
-  // scroll normally, so nothing is measured or restyled per frame for them.
-  const deckEl = $('.deck');
-  const stackMq = window.matchMedia('(min-width: 1025px)');
-  // Only sections near the screen are measured.
-  const near = new Set();
-  const isNear = el => !hasIO || near.has(el);
   let ticking = false;
-  function onScroll() {
+  const onScroll = () => {
     ticking = false;
     const vh = window.innerHeight;
     // Each project panel recedes as the next one slides over it
-    if (!reduced && deckEl && stackMq.matches && isNear(deckEl)) {
-      // Written straight to transform and filter (not an inherited custom property), and only when
-      // the value changes: a custom property restyled every element inside every card on every frame.
-      const rects = panels.map(p => p.getBoundingClientRect()); // read everything first, then write
-      const dim = doc.dataset.theme === 'light' ? 0.06 : 0.35;
-      panels.forEach((p, i) => {
-        const nr = rects[i + 1];
-        const s = nr ? Math.min(1, Math.max(0, 1 - (nr.top - rects[i].top) / rects[i].height)) : 0;
-        const key = s.toFixed(3) + dim;
-        if (p._shrink === key) return;
-        p._shrink = key;
-        p.style.transform = `scale(${(1 - s * 0.06).toFixed(4)})`;
-        p.style.filter = `brightness(${(1 - s * dim).toFixed(4)})`;
-      });
-    }
-    if (system && systemFill && isNear(system)) {
+    const stacking = !reduced;
+    panels.forEach((p, i) => {
+      const nextP = panels[i + 1];
+      let s = 0;
+      if (stacking && nextP) {
+        const pr = p.getBoundingClientRect(), nr = nextP.getBoundingClientRect();
+        s = Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height));
+      }
+      p.style.setProperty('--shrink', s.toFixed(3));
+      const r = p.getBoundingClientRect();
+      p.classList.toggle('is-current', r.top < vh * 0.6 && r.bottom > vh * 0.3);
+    });
+    if (system && systemFill) {
       const r = system.getBoundingClientRect();
       const p = reduced ? 1 : Math.min(1, Math.max(0, (vh * 0.8 - r.top) / (r.height + vh * 0.25)));
       systemFill.style.setProperty('--p', p.toFixed(4));
       stages.forEach((s, i) => s.classList.toggle('is-on', reduced || p >= (i / (stages.length - 1)) * 0.92));
     }
-    if (timeline && fill && isNear(timeline)) {
+    if (timeline && fill) {
       const r = timeline.getBoundingClientRect();
-      const tops = steps.map(s => s.getBoundingClientRect().top);
       const p = reduced ? 1 : Math.min(1, Math.max(0, (vh * 0.6 - r.top) / r.height));
       fill.parentElement.style.setProperty('--p', p.toFixed(4));
       fill.style.setProperty('--p', p.toFixed(4));
       const line = r.top + p * r.height;
-      steps.forEach((s, i) => s.classList.toggle('is-active', reduced || tops[i] + 40 <= line));
+      steps.forEach(s => {
+        const sr = s.getBoundingClientRect();
+        s.classList.toggle('is-active', reduced || sr.top + 40 <= line);
+      });
     }
-    if (cta && ctaCore && !reduced && isNear(cta)) {
+    if (cta && ctaCore && !reduced) {
       const r = cta.getBoundingClientRect();
       const p = Math.min(1, Math.max(0, 1 - (r.top + r.height / 2 - vh / 2) / vh));
       ctaCore.style.setProperty('--core', (0.5 + p * 0.9).toFixed(3));
     }
-  }
-  if (hasIO) {
-    const nearIO = new IntersectionObserver(es => {
-      es.forEach(e => { if (e.isIntersecting) near.add(e.target); else near.delete(e.target); });
-      onScroll();
-    }, { rootMargin: '25% 0px 25% 0px' });
-    [deckEl, system, timeline, cta].filter(Boolean).forEach(el => nearIO.observe(el));
-  }
+  };
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-  widthJobs.push(onScroll);
-  const resetDeck = () => panels.forEach(p => { p._shrink = null; p.style.removeProperty('transform'); p.style.removeProperty('filter'); });
-  stackMq.addEventListener('change', () => { resetDeck(); onScroll(); });
-  // the dimming differs per theme
-  new MutationObserver(() => { panels.forEach(p => { p._shrink = null; }); onScroll(); }).observe(doc, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', onScroll);
   onScroll();
 
   /* ---------- Technology stack ---------- */
@@ -623,12 +573,9 @@
     if (contactEl && 'IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => { contactOnScreen = e.isIntersecting; syncBar(); }, { threshold: 0.12 }).observe(contactEl);
     }
-    const barStart = () => (heroEl ? heroEl.offsetHeight * 0.55 : 400);
-    let barAt = barStart(), barOn = null;
-    widthJobs.push(() => { barAt = barStart(); syncBar(); });
     function syncBar() {
-      const on = window.scrollY > barAt && !contactOnScreen;
-      if (on !== barOn) { barOn = on; mcta.classList.toggle('is-visible', on); }
+      const past = window.scrollY > (heroEl ? heroEl.offsetHeight * 0.55 : 400);
+      mcta.classList.toggle('is-visible', past && !contactOnScreen);
     }
     window.addEventListener('scroll', syncBar, { passive: true });
     syncBar();

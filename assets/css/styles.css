@@ -179,37 +179,42 @@ p { text-wrap: pretty; }
 .btn-ghost:hover { border-color: var(--line-3); background: var(--surface-2); }
 .btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 
-/* Live site: the one filled button on a project card, so it reads as the thing to press.
-   The arrow sits in its own tile and points out of the page: this link leaves the site. */
+/* Live view: a light that flows around the border */
 .live-btn {
-  position: relative;
-  display: inline-flex; align-items: center; justify-content: space-between; gap: 16px;
-  min-height: 54px; padding: 0 8px; padding-inline-start: 22px; border-radius: 14px;
-  background: var(--brand-btn); background-size: 170% 100%; background-position: 0% 0;
-  color: #fff; font-weight: 600; font-size: 1rem; white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(var(--ion-rgb), .4), 0 14px 30px -14px rgba(var(--azure-rgb), .9);
-  cursor: pointer;
-  transition: transform .35s var(--ease-out), background-position .6s var(--ease-out), box-shadow .35s;
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; gap: 12px;
+  min-height: 50px; padding: 0 20px; border-radius: var(--r-m);
+  background: var(--surface-2); color: var(--fg); font-weight: 600; font-size: .9375rem;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  cursor: pointer; transition: background .3s, box-shadow .3s, transform .35s var(--ease-out);
 }
-.live-arrow {
-  display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(255, 255, 255, .16); color: #fff; transition: background-color .3s, color .3s;
+.live-btn::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; padding: 1.5px;
+  background: conic-gradient(from var(--ang), transparent 0deg, transparent 200deg, var(--ion) 260deg, var(--iris) 310deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: orbit-ang 3.6s linear infinite;
 }
-.live-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .35s var(--ease-out); }
-@media (hover: hover) {
-  .live-btn:hover {
-    background-position: 100% 0; transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), inset 0 0 0 1px rgba(var(--ion-rgb), .8), 0 0 0 4px rgba(var(--ion-rgb), .18), 0 18px 44px -12px rgba(var(--ion-rgb), .8);
-  }
-  .live-btn:hover .live-arrow { background: #fff; color: var(--azure); }
-  .live-btn:hover .live-arrow svg { transform: translate(2px, -2px); }
+.live-btn::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: 0;
+  background: radial-gradient(120% 140% at 0% 50%, rgba(var(--ion-rgb), .16), transparent 60%);
+  transition: opacity .35s;
 }
-.live-btn:focus-visible { outline-offset: 4px; }
+.live-btn:hover { background: var(--surface-3); transform: translateY(-1px); }
+.live-btn:hover::before { animation-duration: 1.4s; }
+.live-btn:hover::after { opacity: 1; }
+.live-arrow { display: inline-block; transition: transform .35s var(--ease-out); }
+.live-btn:hover .live-arrow { transform: translateX(5px); }
+.live-soon { display: none; }
+.live-btn.is-soon { cursor: default; background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.live-btn.is-soon::before { animation: none; opacity: .35; }
+.live-btn.is-soon:hover { transform: none; background: transparent; }
+.live-btn.is-soon .live-arrow { display: none; }
+.live-btn.is-soon .live-soon { display: inline; font-size: .8125rem; font-weight: 500; padding: 3px 9px; border-radius: 6px; background: var(--surface-2); color: var(--fg-2); }
 @keyframes orbit-ang { to { --ang: 360deg; } }
 
 /* Touch screens: a press you can feel, and the hero light drifting on its own */
-a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.btn:active, .live-btn:active, .tool-btn:active, .channels a:active, .link-btn:active, .m-cta-wa:active { transform: scale(.96); transition-duration: .12s; }
+.btn:active, .live-btn:active, .tool-btn:active, .channels a:active { transform: scale(.96); transition-duration: .12s; }
 .has-touch .hero-glow { animation: glow-drift 9s var(--ease) infinite alternate; }
 @keyframes glow-drift { from { translate: -18% 6%; } to { translate: 8% -6%; } }
 
@@ -743,6 +748,7 @@ a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent
 .next-steps p { color: var(--muted); font-size: .9375rem; margin-top: 4px; }
 .channels { display: flex; flex-wrap: wrap; gap: 8px; }
 .channels a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: var(--r-m); border: 1px solid var(--line-2); color: var(--fg); font-size: .9375rem; transition: border-color .25s, background .25s; }
+.channels a:hover { border-color: var(--line-3); background: var(--surface-2); }
 .channels li[data-missing], .socials li[data-missing] { display: none; }
 /* Instagram: the glyph in the logo's gradient, then the handle */
 .channels a, .socials a { gap: 9px; }
@@ -933,6 +939,7 @@ svg.ig .ig-dot { fill: var(--accent-text); stroke: none; }
   .panel-info { gap: 10px; }
   .panel-title { font-size: clamp(1.7rem, 7.4vw, 2.1rem); }
   .panel-desc { font-size: .9375rem; }
+  .panel-actions .live-btn { flex: 1 1 100%; justify-content: center; }
 
   .mod-body { padding: 24px 22px 26px; }
   .mod-visual { min-height: 200px; }
@@ -986,6 +993,7 @@ svg.ig .ig-dot { fill: var(--accent-text); stroke: none; }
 :root[dir="rtl"] .tech-list > div.is-active { background: linear-gradient(270deg, rgba(var(--ion-rgb), .08), transparent); }
 :root[dir="rtl"] .back::before { transform: scaleX(-1); }
 :root[dir="rtl"] .live-arrow { transform: scaleX(-1); }
+:root[dir="rtl"] .live-btn:hover .live-arrow { transform: scaleX(-1) translateX(5px); }
 :root[dir="rtl"] .hero-fallback { transform: scaleX(-1); }
 :root[dir="rtl"] .system-fill, :root[dir="rtl"] .pillar::before { transform-origin: right; }
 html.i18n-pending body { visibility: hidden; }
@@ -1003,6 +1011,7 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
   .system-fill { transform: none; }
   .tl-step > div { opacity: 1; transform: none; }
   .panel { position: relative; top: auto; transform: none; filter: none; }
+  .live-btn::before { animation: none; background: linear-gradient(90deg, var(--ion), var(--iris)); opacity: .6; }
 }
 
 :root[dir="rtl"] .stat dd { direction: ltr; justify-content: flex-end; }
@@ -1224,8 +1233,7 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
 
 /* Silk 3D (silk3d.js): a real 3D ribbon on a fixed canvas that follows the scroll 1:1.
    When it runs, the pre-rendered silk images above step aside; they stay as the fallback. */
-/* It sits in the page (silk3d.js moves it along with the view), so the browser scrolls it with the content. */
-.silk3d { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; will-change: transform; contain: strict; }
+.silk3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; }
 .silk3d.is-on { opacity: 1; }
 html.has-silk3d .silk { display: none; }
 
@@ -1247,115 +1255,3 @@ html.has-silk3d .silk { display: none; }
   html { scrollbar-width: thin; scrollbar-color: #2F5BFB #040817; }
   :root[data-theme="light"] { scrollbar-color: #2F5BFB #E9EDFA; }
 }
-
-/* ==========================================================================
-   v3: phones first. Project links you can reach and press, contact channels
-   that light up, and nothing on a phone that repaints while you scroll.
-   ========================================================================== */
-
-/* Contact channels: each one lights up in its own colour */
-.channels li, .socials li { --c: var(--ion-rgb); }
-:is(.channels, .socials) li[data-channel="whatsapp"] { --c: 37, 211, 102; }
-:is(.channels, .socials) li[data-channel="instagram"] { --c: 255, 72, 140; }
-:is(.channels, .socials) li[data-channel="facebook"] { --c: 64, 140, 255; }
-:is(.channels, .socials) li[data-channel="linkedin"] { --c: 40, 160, 255; }
-.channels { gap: 10px; }
-/* A solid chip (the silk behind no longer runs through the text), with a band of the channel's
-   colour parked off its left edge. On hover the band sweeps across and the chip lights up. */
-.channels a {
-  position: relative; min-height: 46px; padding: 0 16px;
-  background: linear-gradient(100deg, transparent 38%, rgba(var(--c), .42) 50%, transparent 62%) 180% 0 / 220% 100% no-repeat, transparent;
-  transition: transform .35s var(--ease-out), border-color .3s, box-shadow .35s, background-position .9s var(--ease-out);
-}
-/* a ring of the same colour that pulses outward while the pointer stays */
-.channels a::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 1.5px solid rgb(var(--c)); opacity: 0; pointer-events: none; }
-svg.ig { transition: stroke .3s, filter .3s; }
-svg.ig .ig-dot { transition: fill .3s; }
-.channels a:focus-visible,
-.channels a:active {
-  border-color: rgb(var(--c)); background-position: -80% 0, 0 0;
-  box-shadow: 0 0 0 1px rgba(var(--c), .75), 0 0 20px rgba(var(--c), .6), 0 0 54px rgba(var(--c), .38), inset 0 0 22px -6px rgba(var(--c), .8);
-}
-@media (hover: hover) {
-  .channels a:hover {
-    border-color: rgb(var(--c)); background-position: -80% 0, 0 0; transform: translateY(-3px);
-    box-shadow: 0 0 0 1px rgba(var(--c), .75), 0 0 20px rgba(var(--c), .6), 0 0 54px rgba(var(--c), .38), 0 18px 40px -14px rgba(var(--c), .9), inset 0 0 22px -6px rgba(var(--c), .8);
-  }
-  .channels a:hover::before { animation: chan-halo 1.5s var(--ease-out) infinite; }
-  .channels a:hover svg.ig, .socials a:hover svg.ig { stroke: rgb(var(--c)); filter: drop-shadow(0 0 6px rgba(var(--c), .85)); }
-  .channels a:hover svg.ig .ig-dot, .socials a:hover svg.ig .ig-dot { fill: rgb(var(--c)); }
-  .footer .socials a { transition: color .25s, text-shadow .3s; }
-  .footer .socials a:hover { color: rgb(var(--c)); text-shadow: 0 0 18px rgba(var(--c), .75); }
-  .btn-wa:hover, .wa-float:hover { box-shadow: 0 0 0 4px rgba(37, 211, 102, .2), 0 0 30px -2px rgba(37, 211, 102, .75), 0 18px 40px -14px rgba(37, 211, 102, .9); }
-}
-@keyframes chan-halo { from { opacity: .85; transform: scale(1); } to { opacity: 0; transform: scale(1.14, 1.55); } }
-@media (prefers-reduced-motion: reduce) { .channels a:hover::before { animation: none; } }
-:root[data-theme="light"] :is(.channels, .socials) [data-channel="whatsapp"] { --c: 22, 163, 74; }
-:root[data-theme="light"] :is(.channels, .socials) [data-channel="instagram"] { --c: 219, 39, 119; }
-:root[data-theme="light"] :is(.channels, .socials) [data-channel="facebook"] { --c: 24, 119, 242; }
-:root[data-theme="light"] :is(.channels, .socials) [data-channel="linkedin"] { --c: 10, 102, 194; }
-:root[data-theme="light"] .channels li, :root[data-theme="light"] .socials li { --c: 31, 79, 230; }
-
-/* Phones and tablets */
-@media (max-width: 1024px) {
-  /* Project cards scroll like any other content. Stacked and sticky, a card taller than the
-     screen kept its buttons under the next card, where no finger could reach them. */
-  .panel { position: relative; top: auto; transform: none; filter: none; }
-  :root[data-theme="light"] .panel { filter: none; }
-  .panel-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 14px; }
-  .live-btn { min-height: 56px; font-size: 1.0625rem; }
-  .link-btn { justify-content: center; min-height: 52px; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line-3); background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
-  .link-btn::after { display: none; }
-
-  .channels a { min-height: 50px; padding: 0 18px; }
-  .footer ul a { display: inline-flex; align-items: center; min-height: 44px; }
-  .footer ul { gap: 2px; }
-}
-
-/* The silk images (shown only where WebGL is missing) are wider than their sections:
-   clip them sideways so they can never widen the page. Sticky cards still work: clip is not a scroller. */
-.hero, .work, .services, .process, .contact { overflow-x: clip; }
-
-/* Touch screens: no tilt in 3D */
-@media (hover: none), (pointer: coarse) {
-  .bento { perspective: none; }
-  .panel-media { perspective: none; }
-  .panel-media > * { transform: none; transition: none; }
-  .mod, .mod.reveal.is-in { transform: none; }
-}
-
-/* ==========================================================================
-   v4: the main button's light, run on the compositor.
-   It used to animate a registered angle (--ang) and a box-shadow, which made the
-   main thread restyle and repaint every glowing button on every frame, all the time.
-   main.js adds three layers to each .btn-glow; they look exactly like the old
-   ::before ring and ::after pulse, but only transform and opacity change.
-   ========================================================================== */
-.btn-glow.has-fx::before, .btn-glow.has-fx::after { content: none; }
-.glow-ring, .glow-pulse, .glow-bg { position: absolute; z-index: -1; border-radius: inherit; pointer-events: none; }
-/* the light running around the edge: a fixed 2px frame, with a conic light turning inside it */
-.glow-ring {
-  inset: -2px; padding: 2px; overflow: hidden;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-.glow-ring i {
-  position: absolute; left: 50%; top: 50%; width: 120%; aspect-ratio: 1;
-  background: conic-gradient(var(--ion), var(--azure), var(--iris), #fff 300deg, var(--ion));
-  transform: translate(-50%, -50%); animation: glow-turn 3.2s linear infinite;
-}
-@keyframes glow-turn { to { transform: translate(-50%, -50%) rotate(360deg); } }
-/* the pulse: a fill behind the button that grows 16px past its edge and fades (main.js runs it) */
-.glow-pulse { inset: 0; background: rgb(var(--ion-rgb)); opacity: 0; }
-/* the button's own face, drawn again above the pulse so the pulse only shows outside the edge */
-.glow-bg { inset: 0; background: inherit; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(var(--ion-rgb), .35); transition: box-shadow .35s; }
-.btn-primary:hover .glow-bg { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(var(--ion-rgb), .7); }
-@media (prefers-reduced-motion: reduce) { .glow-ring i { animation: none; } }
-
-/* Off-screen animations wait (main.js toggles .fx-paused); they continue where they stopped */
-.fx-paused, .fx-paused::before, .fx-paused::after,
-.fx-paused *, .fx-paused *::before, .fx-paused *::after { animation-play-state: paused !important; }
-
-/* The project cards on wide screens: their scale and dimming change while scrolling, so each
-   card gets its own layer and those changes never repaint the card. */
-@media (min-width: 1025px) { .panel { will-change: transform, filter; } }
