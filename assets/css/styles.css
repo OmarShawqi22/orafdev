@@ -1259,6 +1259,13 @@ html.has-silk3d .silk { display: none; }
 /* Endless animations sleep while they are off screen (main.js "Off-screen animations sleep"). */
 .fx-paused, .fx-paused::before, .fx-paused::after { animation-play-state: paused !important; }
 
+/* The running border lights (.live-btn, .btn-glow) and the call-to-action pulse are redrawn every frame.
+   On their own small layer that redraw covers only the button's frame; without it the browser re-rasterised
+   the whole layer underneath every frame (the phone contact bar, each project card's text block). In-app
+   browsers such as Instagram's could not keep up and showed project cards blank or half drawn while
+   scrolling. Same drawing, same look; only where it is drawn changes. */
+.live-btn::before, .btn-glow::before, .btn-glow::after { will-change: transform; }
+
 /* ==========================================================================
    Social and contact buttons in each platform's own colour
    (contact section .channels and footer .socials; the glass look stays)
