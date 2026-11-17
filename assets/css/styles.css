@@ -1224,7 +1224,8 @@ html.ink-switch::view-transition-old(ink-glow), html.ink-switch::view-transition
 
 /* Silk 3D (silk3d.js): a real 3D ribbon on a fixed canvas that follows the scroll 1:1.
    When it runs, the pre-rendered silk images above step aside; they stay as the fallback. */
-.silk3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; }
+/* It sits in the page (silk3d.js moves it along with the view), so the browser scrolls it with the content. */
+.silk3d { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; will-change: transform; contain: strict; }
 .silk3d.is-on { opacity: 1; }
 html.has-silk3d .silk { display: none; }
 
@@ -1263,7 +1264,7 @@ html.has-silk3d .silk { display: none; }
    colour parked off its left edge. On hover the band sweeps across and the chip lights up. */
 .channels a {
   position: relative; min-height: 46px; padding: 0 16px;
-  background: linear-gradient(100deg, transparent 38%, rgba(var(--c), .42) 50%, transparent 62%) 180% 0 / 220% 100% no-repeat, var(--surface);
+  background: linear-gradient(100deg, transparent 38%, rgba(var(--c), .42) 50%, transparent 62%) 180% 0 / 220% 100% no-repeat, transparent;
   transition: transform .35s var(--ease-out), border-color .3s, box-shadow .35s, background-position .9s var(--ease-out);
 }
 /* a ring of the same colour that pulses outward while the pointer stays */
@@ -1303,38 +1304,58 @@ svg.ig .ig-dot { transition: fill .3s; }
   :root[data-theme="light"] .panel { filter: none; }
   .panel-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 14px; }
   .live-btn { min-height: 56px; font-size: 1.0625rem; }
-  .link-btn { justify-content: center; min-height: 52px; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line-3); background: var(--surface-2); }
+  .link-btn { justify-content: center; min-height: 52px; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line-3); background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
   .link-btn::after { display: none; }
-
-  /* Blur behind fixed bars is recomputed on every scrolled frame: a solid bar costs nothing */
-  .nav.is-scrolled { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
-  .m-cta { background: color-mix(in srgb, var(--bg) 96%, transparent); backdrop-filter: none; -webkit-backdrop-filter: none; }
-
-  /* The silk images are the fallback for wide screens only; here they were wider than the page */
-  .silk { display: none; }
-
-  /* The main call to action keeps its light, as a sheen that only moves on the compositor */
-  .btn-glow { overflow: hidden; }
-  .btn-glow::before { animation: none; inset: 0; padding: 1.5px; background: linear-gradient(120deg, var(--ion), #fff 34%, var(--azure) 62%, var(--iris)); }
-  .btn-glow::after {
-    inset: 0 auto 0 0; width: 44%; border-radius: 0; box-shadow: none;
-    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .32), transparent);
-    transform: translateX(-190%) skewX(-18deg); animation: btn-sheen 4.8s var(--ease) infinite;
-  }
 
   .channels a { min-height: 50px; padding: 0 18px; }
   .footer ul a { display: inline-flex; align-items: center; min-height: 44px; }
   .footer ul { gap: 2px; }
 }
-@keyframes btn-sheen { 0%, 58% { transform: translateX(-190%) skewX(-18deg); } 100% { transform: translateX(360%) skewX(-18deg); } }
 
-/* Touch screens: no tilt in 3D and no painted sweeps while scrolling */
+/* The silk images (shown only where WebGL is missing) are wider than their sections:
+   clip them sideways so they can never widen the page. Sticky cards still work: clip is not a scroller. */
+.hero, .work, .services, .process, .contact { overflow-x: clip; }
+
+/* Touch screens: no tilt in 3D */
 @media (hover: none), (pointer: coarse) {
   .bento { perspective: none; }
   .panel-media { perspective: none; }
   .panel-media > * { transform: none; transition: none; }
   .mod, .mod.reveal.is-in { transform: none; }
-  .shot::after { display: none; }
-  .ribbon { -webkit-mask-image: none; mask-image: none; }
 }
-@media (prefers-reduced-motion: reduce) { .btn-glow::after { animation: none; } }
+
+/* ==========================================================================
+   v4: the main button's light, run on the compositor.
+   It used to animate a registered angle (--ang) and a box-shadow, which made the
+   main thread restyle and repaint every glowing button on every frame, all the time.
+   main.js adds three layers to each .btn-glow; they look exactly like the old
+   ::before ring and ::after pulse, but only transform and opacity change.
+   ========================================================================== */
+.btn-glow.has-fx::before, .btn-glow.has-fx::after { content: none; }
+.glow-ring, .glow-pulse, .glow-bg { position: absolute; z-index: -1; border-radius: inherit; pointer-events: none; }
+/* the light running around the edge: a fixed 2px frame, with a conic light turning inside it */
+.glow-ring {
+  inset: -2px; padding: 2px; overflow: hidden;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.glow-ring i {
+  position: absolute; left: 50%; top: 50%; width: 120%; aspect-ratio: 1;
+  background: conic-gradient(var(--ion), var(--azure), var(--iris), #fff 300deg, var(--ion));
+  transform: translate(-50%, -50%); animation: glow-turn 3.2s linear infinite;
+}
+@keyframes glow-turn { to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* the pulse: a fill behind the button that grows 16px past its edge and fades (main.js runs it) */
+.glow-pulse { inset: 0; background: rgb(var(--ion-rgb)); opacity: 0; }
+/* the button's own face, drawn again above the pulse so the pulse only shows outside the edge */
+.glow-bg { inset: 0; background: inherit; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(var(--ion-rgb), .35); transition: box-shadow .35s; }
+.btn-primary:hover .glow-bg { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(var(--ion-rgb), .7); }
+@media (prefers-reduced-motion: reduce) { .glow-ring i { animation: none; } }
+
+/* Off-screen animations wait (main.js toggles .fx-paused); they continue where they stopped */
+.fx-paused, .fx-paused::before, .fx-paused::after,
+.fx-paused *, .fx-paused *::before, .fx-paused *::after { animation-play-state: paused !important; }
+
+/* The project cards on wide screens: their scale and dimming change while scrolling, so each
+   card gets its own layer and those changes never repaint the card. */
+@media (min-width: 1025px) { .panel { will-change: transform, filter; } }
