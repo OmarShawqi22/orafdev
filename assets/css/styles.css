@@ -1424,3 +1424,9 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
   .nav.is-scrolled { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--bg) 93%, transparent); }
   .m-cta { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--bg) 95%, transparent); }
 }
+
+/* Desktop: these layer hints help phones but measured slower on wide screens, where the cards and their images
+   are much larger (desktop deck 28.9 -> 33.2 fps without them). Same drawing, same look; phones keep them. */
+@media (min-width: 901px) {
+  .shot img, .shot::after, .panel-dim, .glow-ring > i { will-change: auto; }
+}

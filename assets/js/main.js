@@ -209,9 +209,21 @@
 
   /* ---------- Navigation ---------- */
   const nav = $('[data-nav]');
-  const onScrollNav = () => nav && nav.classList.toggle('is-scrolled', window.scrollY > 24);
-  onScrollNav();
-  window.addEventListener('scroll', onScrollNav, { passive: true });
+  // The scrolled look switches on once the page has moved 24px. It comes from an observer on a 1px marker 24px
+  // down the page: reading window.scrollY in every scroll event forced a layout flush while the deck animated.
+  if (nav) {
+    const mark = document.createElement('div');
+    mark.setAttribute('aria-hidden', 'true');
+    mark.style.cssText = 'position:absolute;top:24px;left:0;width:1px;height:1px;pointer-events:none;visibility:hidden';
+    document.body.prepend(mark);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => nav.classList.toggle('is-scrolled', !e.isIntersecting)).observe(mark);
+    } else {
+      const onScrollNav = () => nav.classList.toggle('is-scrolled', window.scrollY > 24);
+      onScrollNav();
+      window.addEventListener('scroll', onScrollNav, { passive: true });
+    }
+  }
 
   const spyLinks = $$('[data-spy]');
   if (spyLinks.length) {
@@ -301,22 +313,27 @@
     if (cursor) {
       document.body.classList.add('has-cursor');
       const dot = $('.cursor-dot', cursor), ring = $('.cursor-ring', cursor);
-      let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y;
+      let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y, ringRaf = 0;
       window.addEventListener('pointermove', e => {
         x = e.clientX; y = e.clientY;
         dot.style.transform = `translate(${x}px, ${y}px)`;
         cursor.classList.remove('is-hidden');
+        if (!ringRaf) ringRaf = requestAnimationFrame(loop);
       }, { passive: true });
       document.addEventListener('pointerleave', () => cursor.classList.add('is-hidden'));
       document.addEventListener('pointerover', e => {
         cursor.classList.toggle('is-hover', !!e.target.closest('a, button, [data-tilt], select, label, .plate'));
       });
-      const loop = () => {
+      // The ring eases after the pointer and sleeps once it has caught up (it used to run every frame forever,
+      // which kept the whole page producing frames on desktop); the next pointer move wakes it.
+      function loop() {
         rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
+        const settled = Math.abs(x - rx) < 0.1 && Math.abs(y - ry) < 0.1;
+        if (settled) { rx = x; ry = y; }
         ring.style.transform = `translate(${rx}px, ${ry}px)`;
-        requestAnimationFrame(loop);
-      };
-      loop();
+        ringRaf = settled ? 0 : requestAnimationFrame(loop);
+      }
+      ringRaf = requestAnimationFrame(loop);
     }
 
     // Hero glow follows cursor
@@ -677,12 +694,17 @@
     if (contactEl && 'IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => { contactOnScreen = e.isIntersecting; syncBar(); }, { threshold: 0.12 }).observe(contactEl);
     }
-    function syncBar() {
-      const past = window.scrollY > (heroEl ? heroEl.offsetHeight * 0.55 : 400);
-      mcta.classList.toggle('is-visible', past && !contactOnScreen);
+    // Shown once the visitor is past 55% of the hero (less than 45% of it still on screen), hidden over the
+    // contact section. Both come from observers; reading scrollY and offsetHeight per scroll event forced layout.
+    let heroPast = false;
+    function syncBar() { mcta.classList.toggle('is-visible', heroPast && !contactOnScreen); }
+    if (heroEl && 'IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { heroPast = e.intersectionRatio < 0.45; syncBar(); }, { threshold: [0, 0.45] }).observe(heroEl);
+    } else {
+      const onScrollBar = () => { heroPast = window.scrollY > (heroEl ? heroEl.offsetHeight * 0.55 : 400); syncBar(); };
+      window.addEventListener('scroll', onScrollBar, { passive: true });
+      onScrollBar();
     }
-    window.addEventListener('scroll', syncBar, { passive: true });
-    syncBar();
   }
 
   /* ---------- Off-screen animations sleep ----------
