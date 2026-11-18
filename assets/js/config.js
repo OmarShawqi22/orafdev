@@ -28,8 +28,8 @@ window.ORAFDEV = {
     "aiu-shop": { live: "https://www.aiushop.net", source: "", tech: [] },
     "attoor": { live: "https://alttor.com/", source: "", tech: ["React", "Vite"] },
     "deep-focus": { live: "", source: "", tech: [] },
-    "israf-guard": { live: "", source: "", tech: [] },
-    "ozo-store":  { live: "", source: "", tech: [] },
+    "israf-guard": { live: "https://omarshawqi7722.github.io/isrraaff/", source: "", tech: [] },
+    "ozo-store":  { live: "https://ozostore.odoo.com/", source: "", tech: [] },
     "ats-matching": { live: "", source: "", tech: [] },
   },
 
