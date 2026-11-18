@@ -490,6 +490,16 @@
     p.appendChild(d);
     return d;
   });
+  // Project images: lazy loading only starts them near the screen, so on mobile data a fast swipe could bring
+  // a card in before its image arrived (a blank card). Once the page has loaded and the phone is idle, fetch
+  // and decode them all (about 600 KB) so every card is ready before it slides in.
+  const idle = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 3000 }) : cb => setTimeout(cb, 1500);
+  window.addEventListener('load', () => idle(() => {
+    $$('.deck img').forEach(img => {
+      if (img.loading === 'lazy') img.loading = 'eager';
+      if (img.decode) img.decode().catch(() => {});
+    });
+  }));
   const measureCards = () => panels.forEach(p => p.style.setProperty('--card-h', `${p.offsetHeight}px`));
   measureCards();
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(measureCards); panels.forEach(p => ro.observe(p)); }
@@ -516,6 +526,10 @@
       p.style.transform = s ? `scale(${(1 - s * 0.06).toFixed(4)})` : '';
       dims[i].style.opacity = s ? (s * dimMax).toFixed(3) : '0';
       p.classList.toggle('is-current', pr.top < vh * 0.6 && pr.bottom > vh * 0.3);
+      // A card that a later card covers completely is invisible: stop drawing it (phones were compositing
+      // every card of the stack on every frame). A strip that still shows below a shorter card keeps it drawn.
+      const covered = rects.some((r, k) => k > i && r.top <= pr.top + 1 && r.bottom >= pr.bottom - 1 && r.left <= pr.left + 1 && r.right >= pr.right - 1);
+      if (covered !== p.classList.contains('is-covered')) p.classList.toggle('is-covered', covered);
     });
     if (system && systemFill) {
       const r = system.getBoundingClientRect();

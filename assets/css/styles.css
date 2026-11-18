@@ -1413,3 +1413,6 @@ html.has-silk3d .silk { display: none; }
 /* While a scroll is in progress the decorative button lights hold still (main.js "Lights rest while scrolling"):
    the main thread then only has to move the page and the 3D silk. They carry on the moment scrolling stops. */
 html.is-scrolling .glow-ring > i { animation-play-state: paused; }
+
+/* A card completely covered by a later one is invisible anyway: skip drawing it (main.js sets .is-covered). */
+.panel.is-covered { visibility: hidden; }
