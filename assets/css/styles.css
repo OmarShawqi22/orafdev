@@ -1416,3 +1416,11 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
 
 /* A card completely covered by a later one is invisible anyway: skip drawing it (main.js sets .is-covered). */
 .panel.is-covered { visibility: hidden; }
+
+/* Phones: the top bar and the contact bar drop the backdrop blur and are a little more opaque instead.
+   Re-blurring the page under both fixed bars on every scroll frame cost about 5 fps on a weak phone
+   (46.5 -> 51.5 fps in the deck); the bars look almost the same. Wider screens keep the glass. */
+@media (max-width: 760px) {
+  .nav.is-scrolled { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--bg) 93%, transparent); }
+  .m-cta { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--bg) 95%, transparent); }
+}
