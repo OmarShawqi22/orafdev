@@ -8,6 +8,7 @@
   - Cheap by construction: every vertex is placed on the GPU from a few uniforms, so a frame is
     two draw calls and no per-pixel loops. JavaScript only updates time and scroll.
   - Readable: the ribbon fades behind the text column in the middle of the screen.
+  - On the home page it lives below the projects only, so the project deck scrolls with nothing redrawing behind it.
   - Safe: no WebGL means the pre-rendered silk images stay; reduced motion stops the drift but
     keeps it scrolling with the page; hidden tabs stop rendering; slow devices drop resolution.
 */
@@ -168,9 +169,18 @@ void main(){
 
   // ---------- loop: rAF only (never draw inside scroll events), adaptive quality ----------
   let raf = 0, slow = 0, frames = 0, lastT = 0, dirty = true;
+
+  // ---------- home page: the silk lives below the projects only ----------
+  // From the top of the page through the end of "Selected work" the silk is not drawn at all (no frames;
+  // the canvas fades out), so the project deck scrolls with nothing else redrawing behind it. It fades back
+  // in as the section after the projects comes into view. Pages without the deck keep it everywhere.
+  const work = document.getElementById('work');
+  const gate = work && work.querySelector('.deck') ? work.nextElementSibling : null;
+  let active = !gate || !('IntersectionObserver' in window);
+
   function loop(now) {
     raf = 0;
-    if (document.hidden) return;
+    if (document.hidden || !active) return;
     if (!reduced || dirty) { draw(now); dirty = false; }
     if (lastT) {
       const dt = now - lastT; frames++;
@@ -183,10 +193,19 @@ void main(){
     lastT = now;
     if (!reduced) raf = requestAnimationFrame(loop);
   }
-  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+  const kick = () => { if (!raf && active) raf = requestAnimationFrame(loop); };
+  if (gate && !active) {
+    new IntersectionObserver(([e]) => {
+      const on = e.isIntersecting || e.boundingClientRect.bottom < 0; // in view, or already scrolled past
+      if (on === active) return;
+      active = on;
+      cv.classList.toggle('is-on', on);
+      if (on) { lastT = 0; dirty = true; kick(); }
+    }).observe(gate);
+  }
 
   resize();
-  requestAnimationFrame(t => { draw(t); cv.classList.add('is-on'); });
+  if (active) requestAnimationFrame(t => { draw(t); cv.classList.add('is-on'); });
   window.addEventListener('scroll', () => { dirty = true; kick(); }, { passive: true });
   window.addEventListener('resize', () => { resize(); dirty = true; kick(); }, { passive: true });
   window.addEventListener('load', () => { pageH = document.documentElement.scrollHeight; dirty = true; kick(); });
