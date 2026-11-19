@@ -501,6 +501,11 @@
   const panels = $$('.panel');
   // each card gets a black layer for the "recede" darkening, and knows its own height so it can stick
   // only once it is fully on screen (styles.css: .panel top, .panel-dim)
+  // Explicit stacking order: later cards always paint above earlier ones. Without it some Android GPUs
+  // composited a receding (scaled) card above the next card's text while its image stayed on top,
+  // so two cards' text showed through each other while scrolling. Desktop never showed it and the order costs
+  // it frames, so styles.css applies it at <= 900px only.
+  panels.forEach((p, i) => p.style.setProperty('--z', String(i + 1))); // used on phones only (styles.css)
   const dims = panels.map(p => {
     const d = document.createElement('span');
     d.className = 'panel-dim'; d.setAttribute('aria-hidden', 'true');

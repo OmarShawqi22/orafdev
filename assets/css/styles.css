@@ -1430,3 +1430,6 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
 @media (min-width: 901px) {
   .shot img, .shot::after, .panel-dim, .glow-ring > i { will-change: auto; }
 }
+
+/* Phones/tablets: explicit card order (main.js sets --z) so a receding card never paints over the next card's text. */
+@media (max-width: 900px) { .panel { z-index: var(--z, auto); } }
