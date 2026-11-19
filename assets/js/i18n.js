@@ -570,17 +570,17 @@
     'From idea to digital experience.': 'من الفكرة إلى تجربة رقمية.',
     'Email Orafdev': 'راسل Orafdev عبر الإيميل',
 
-    // Attoor.CEGS (card + case study)
+    // Alttor.CEGS (card + case study)
     'Construction company website': 'موقع شركة مقاولات',
     'A bilingual website for a construction, engineering and general services company. One site in English and Arabic, light and dark, built to win the trust of clients planning their next building.': 'موقع بلغتين لشركة إنشاءات وهندسة وخدمات عامة. موقع واحد بالعربي والإنجليزي، بوضع فاتح وداكن، مصمم ليكسب ثقة العميل اللي يخطط لمبناه القادم.',
-    'Attoor.CEGS website home page in English, light mode': 'الصفحة الرئيسية لموقع Attoor.CEGS بالإنجليزي، الوضع الفاتح',
-    'Attoor.CEGS website in Arabic, dark mode': 'موقع Attoor.CEGS بالعربي، الوضع الداكن',
-    'Attoor.CEGS website on a phone, in Arabic': 'موقع Attoor.CEGS على الجوال بالعربي',
+    'Alttor.CEGS website home page in English, light mode': 'الصفحة الرئيسية لموقع Alttor.CEGS بالإنجليزي، الوضع الفاتح',
+    'Alttor.CEGS website in Arabic, dark mode': 'موقع Alttor.CEGS بالعربي، الوضع الداكن',
+    'Alttor.CEGS website on a phone, in Arabic': 'موقع Alttor.CEGS على الجوال بالعربي',
     'Light · Dark': 'فاتح · داكن',
     'Company website': 'موقع شركة',
     'Construction & engineering': 'إنشاءات وهندسة',
-    'Attoor.CEGS website in English and Arabic, light and dark, on desktop and phone': 'موقع Attoor.CEGS بالعربي والإنجليزي، فاتح وداكن، على الكمبيوتر والجوال',
-    'Attoor.CEGS is a construction, engineering and general services company that delivers residential, commercial and renovation projects. We built its website: the page a client opens to decide whether this is the contractor they call.': 'الطور للهندسة والإنشاءات والخدمات العامة (Attoor.CEGS) شركة تنفذ مشاريع سكنية وتجارية ومشاريع ترميم. بنينا موقعها: الصفحة اللي يفتحها العميل عشان يقرر إذا هذا المقاول اللي بيتصل فيه.',
+    'Alttor.CEGS website in English and Arabic, light and dark, on desktop and phone': 'موقع Alttor.CEGS بالعربي والإنجليزي، فاتح وداكن، على الكمبيوتر والجوال',
+    'Alttor.CEGS is a construction, engineering and general services company that delivers residential, commercial and renovation projects. We built its website: the page a client opens to decide whether this is the contractor they call.': 'الطور للهندسة والإنشاءات والخدمات العامة (Alttor.CEGS) شركة تنفذ مشاريع سكنية وتجارية ومشاريع ترميم. بنينا موقعها: الصفحة اللي يفتحها العميل عشان يقرر إذا هذا المقاول اللي بيتصل فيه.',
     'Property owners, developers and businesses looking for a contractor they can trust, whether they read in Arabic or in English.': 'ملاك العقارات والمطورون والشركات اللي يدورون مقاول يوثقون فيه، سواء يقرون بالعربي أو بالإنجليزي.',
     'What we built': 'ما بنيناه',
     'Full English and Arabic versions, with a right-to-left layout for Arabic': 'نسخة كاملة بالإنجليزي والعربي، مع تخطيط من اليمين لليسار للعربي',
@@ -590,7 +590,7 @@
     'A company profile with the figures clients ask about': 'تعريف بالشركة مع الأرقام اللي يسأل عنها العميل',
     'A contact form and direct email': 'نموذج تواصل وإيميل مباشر',
     'Smooth scroll animations on a layout built for phones first': 'حركات ناعمة مع التمرير، وتصميم مبني للجوال أولاً',
-    'A bilingual website for Attoor.CEGS, a construction, engineering and general services company, in English and Arabic with light and dark modes.': 'موقع بلغتين لشركة Attoor.CEGS للإنشاءات والهندسة والخدمات العامة، بالعربي والإنجليزي، بوضع فاتح وداكن.',
+    'A bilingual website for Alttor.CEGS, a construction, engineering and general services company, in English and Arabic with light and dark modes.': 'موقع بلغتين لشركة Alttor.CEGS للإنشاءات والهندسة والخدمات العامة، بالعربي والإنجليزي، بوضع فاتح وداكن.',
     'A bilingual website for a construction, engineering and general services company. One site in English and Arabic, light and dark, with an admin dashboard where the company adds its own projects.': 'موقع بلغتين لشركة إنشاءات وهندسة وخدمات عامة. موقع واحد بالعربي والإنجليزي، بوضع فاتح وداكن، مع لوحة تحكم تضيف منها الشركة مشاريعها بنفسها.',
     'An admin dashboard where the company adds its own projects, without a developer': 'لوحة تحكم تضيف منها الشركة مشاريعها بنفسها، بدون مبرمج',
     // CarHub case study
