@@ -585,7 +585,7 @@
     'What we built': 'ما بنيناه',
     'Full English and Arabic versions, with a right-to-left layout for Arabic': 'نسخة كاملة بالإنجليزي والعربي، مع تخطيط من اليمين لليسار للعربي',
     'Light and dark modes, one tap from the menu': 'وضع فاتح وداكن بضغطة من القائمة',
-    'A hero slideshow of real site photos': 'عرض صور متحرك من مواقع عمل حقيقية',
+    'An interactive 3D building in the hero that visitors can rotate': 'مبنى ثلاثي الأبعاد في واجهة الموقع يقدر الزائر يدوّره',
     'A project gallery filtered by residential, commercial and renovation work': 'معرض مشاريع بفلاتر: سكني، تجاري، ترميم',
     'A company profile with the figures clients ask about': 'تعريف بالشركة مع الأرقام اللي يسأل عنها العميل',
     'A contact form and direct email': 'نموذج تواصل وإيميل مباشر',
