@@ -1433,3 +1433,8 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
 
 /* Phones/tablets: explicit card order (main.js sets --z) so a receding card never paints over the next card's text. */
 @media (max-width: 900px) { .panel { z-index: var(--z, auto); } }
+
+/* Desktop: elements that main.js rescales on every scroll frame get their own GPU layer, so the change is a cheap
+   recomposite instead of repainting the page tiles under them (a fast full-page scroll rasterized ~20% more tiles
+   and spent ~30% more GPU time painting without this). Phones keep their own tuning above. */
+@media (min-width: 901px) { .panel, .tl-fill, .system-fill, .cta-core, .stat dd { will-change: transform; } }
