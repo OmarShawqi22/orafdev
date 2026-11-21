@@ -408,13 +408,18 @@
         const d = offset(r);
         inner.style.transform = `rotateX(${(-d * 9).toFixed(2)}deg) rotateY(${(d * 6).toFixed(2)}deg)`;
       });
-      // the card in the middle of the screen plays its hover animation
+      // the card in the middle of the screen plays its hover animation, once the scroll comes to rest: an animation
+      // that starts mid-scroll makes the browser build and paint new layers while it is also drawing the page
+      // moving (Android WebView: half the frames with undrawn tiles came from these). Same animation, started
+      // when the finger stops (html.is-scrolling clears 180 ms after the last scroll).
+      if (doc.classList.contains('is-scrolling')) return;
       live.forEach((el, i) => {
         const r = liveRects[i];
         el.classList.toggle('is-live', r.top < vh * 0.64 && r.bottom > vh * 0.36);
       });
     };
     window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(touchFx); } }, { passive: true });
+    window.addEventListener('scrollrest', () => requestAnimationFrame(touchFx));
     window.addEventListener('resize', touchFx);
     touchFx();
   }
@@ -589,7 +594,7 @@
     const rects = panels.map(p => p.getBoundingClientRect()); // read everything first, then write
     panels.forEach((p, i) => {
       const pr = rects[i], nr = rects[i + 1];
-      if (css) { p.classList.toggle('is-current', pr.top < vh * 0.6 && pr.bottom > vh * 0.3); return; } // CSS runs the recede
+      if (css) { if (!doc.classList.contains('is-scrolling')) p.classList.toggle('is-current', pr.top < vh * 0.6 && pr.bottom > vh * 0.3); return; } // CSS runs the recede; the current card's animation waits for the scroll to rest
       const s = stacking && nr ? Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height)) : 0;
       p.style.transform = s ? `scale(${(1 - s * 0.06).toFixed(4)})` : '';
       dims[i].style.opacity = s ? (s * dimMax).toFixed(3) : '0';
@@ -625,6 +630,7 @@
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   window.addEventListener('resize', onScroll);
   window.addEventListener('resize', measureCards);
+  window.addEventListener('scrollrest', () => requestAnimationFrame(onScroll));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureCards);
   new MutationObserver(onScroll).observe(doc, { attributes: true, attributeFilter: ['data-theme'] }); // the dim strength differs per theme
   onScroll();

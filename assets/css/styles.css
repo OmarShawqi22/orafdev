@@ -1488,3 +1488,44 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
 .deck.is-measuring .panel { position: relative !important; top: auto !important; animation: none !important; transform: none !important; }
 .deck.is-measuring .panel-media > * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .deck.is-css-recede .panel, .deck.is-css-recede .panel-dim, .deck.is-css-tilt .panel-media > * { animation: none; } }
+
+/* ==========================================================================
+   Running lights and the pulse without masks
+   The ring-shaped masks on .glow-ring and .glow-pulse made the browser draw each button's light into an
+   off-screen image on every frame (a render pass): with the phone contact bar and the cards' buttons, about
+   five of them per frame. In Android's WebView (Instagram's in-app browser) that drawing took the GPU time the
+   page needed to draw cards while scrolling, so cards showed up blank or half drawn.
+   Same picture, no mask: the light spins behind the button as before, and the button's own fill is painted
+   again on ::before just above it, leaving only the edge band uncovered (1.5px for .live-btn, 2px for
+   .btn-glow, as the masks did). The pulse sits under that fill too, so it shows only outside the button.
+   ========================================================================== */
+.glow-ring { z-index: -2; padding: 0; -webkit-mask: none; mask: none; }
+.glow-pulse { z-index: -2; -webkit-mask: none; mask: none; }
+.has-ring::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; padding: 0; animation: none;
+  -webkit-mask: none; mask: none; border-radius: inherit;
+  background: inherit; /* the button's own fill, and its hover change, follow automatically */
+}
+/* .live-btn: the light band ran from 1px outside the edge to .5px inside it */
+.live-btn.has-ring::before { inset: .5px; box-shadow: inset 0 0 0 .5px var(--line-2); }
+/* .btn-glow (always .btn-primary): the band ran from 2px outside to the edge */
+.btn-glow.has-ring::before { inset: 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(var(--ion-rgb), .35); }
+.btn-glow.has-ring:hover::before { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(var(--ion-rgb), .7); }
+/* a "soon" button has no fill to cover the light with, and its light stands still: it keeps the mask */
+.live-btn.is-soon.has-ring::before { content: none; }
+.live-btn.is-soon > .glow-ring { z-index: -1; padding: 1.5px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+
+/* Phones and tablets (the image sits on top of the card): fewer off-screen drawings per frame, same picture.
+   Measured in Android's WebView while scrolling the deck, these were the other big costs:
+   - The scroll tilt turns each project image in 3D. When the image and its shine had layers of their own, the
+     browser had to flatten that 3D group off screen on every frame. Drawn into one layer, the tilt is applied
+     directly (same rotation, same perspective).
+   - The card clipped all its children to its rounded corners, one more off-screen drawing per card. Only the
+     image area reaches those corners, so it now rounds its own top corners and the card stops clipping.
+   WebView, steady scroll through the deck: 11.8 -> 4.2 off-screen drawings per frame (with the masks above). */
+@media (max-width: 1024px) {
+  .panel .shot img, .panel .shot::after { will-change: auto; }
+  .panel { overflow: visible; }
+  .panel-media { border-radius: calc(var(--r-xl) - 1px) calc(var(--r-xl) - 1px) 0 0; }
+  .panel-dim { border-radius: calc(var(--r-xl) - 1px); } /* inside the 1px border, as the clip kept it */
+}
