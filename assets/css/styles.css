@@ -1440,55 +1440,51 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
 @media (min-width: 901px) { .panel, .tl-fill, .system-fill, .cta-core, .stat dd { will-change: transform; } }
 
 /* ==========================================================================
-   Phones and tablets: the projects are a swipe row, not a sticky stack
-   Instagram's in-app browser on Android could not draw the sticky stack (cards that stick, scale, darken and
-   cover each other while the page scrolls): cards went blank or showed two cards' text at once, whatever the
-   layer tuning. Here nothing moves while the page scrolls. The cards sit side by side in a native sideways
-   scroller, one per screen with the next one peeking in; the page scroll stays a plain scroll. Desktop keeps
-   the stack. main.js (deck rail) marks the card on screen and drives the bar under the row.
+   Phones/tablets: the receding card is driven by the browser's own scroll, not by JavaScript
+   Instagram's in-app browser scrolls on its compositor thread while main.js ran on the main thread. Every
+   frame main.js read the cards and wrote a new scale onto a sticky card, so in that browser the card's box,
+   its image and its text could be drawn from different moments: blank cards, an image ahead of its card,
+   two cards' text at once. Here the same scale (1 -> .94) and the same darkening (0 -> .35, .06 light) are
+   scroll-driven CSS animations, which the browser runs in step with the scroll itself. main.js only measures
+   where each card's recede starts and ends (--r0, --r1, scroll positions in px) when the layout changes.
+   Same look; browsers without scroll-driven animations keep the JavaScript version.
    ========================================================================== */
-@media (max-width: 900px) {
-  .deck {
-    display: flex; gap: 12px; align-items: stretch;
-    overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
-    margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 6px;
-    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 900px) {
+    /* second animation: a card the next card covers completely fades out at that exact scroll position, so it is
+       not drawn (as .is-covered did from main.js); --h0 stays far away for a card that is never fully covered */
+    .deck.is-css-recede .panel {
+      animation: panel-recede linear both, panel-hide linear both;
+      animation-timeline: scroll(root block), scroll(root block);
+      animation-range: var(--r0, 0px) var(--r1, 1px), var(--h0, 99999px) var(--h1, 100000px);
+    }
+    .deck.is-css-recede .panel-dim {
+      animation: panel-dim linear both; animation-timeline: scroll(root block);
+      animation-range: var(--r0, 0px) var(--r1, 1px);
+    }
+    .deck.is-css-recede .panel:last-child, .deck.is-css-recede .panel:last-child .panel-dim { animation: none; }
   }
-  .deck::-webkit-scrollbar { display: none; }
-  .panel {
-    flex: 0 0 min(86%, 560px); position: relative; top: auto; z-index: auto; transform: none !important;
-    scroll-snap-align: center; scroll-snap-stop: always; min-height: 0; will-change: auto;
-    display: flex; flex-direction: column;
-  }
-  .panel-info { flex: 1; justify-content: flex-start; }
-  .panel-actions { margin-top: auto; padding-top: 6px; }
-  .panel-dim { display: none; }
-  .panel.is-covered { visibility: visible; }
-  /* no scroll-driven tilt inside the row: the card you land on plays its own animation instead */
-  .panel-media { perspective: none; }
-  .panel-media > * { transform: none !important; }
-
-  /* The bar under the row: one segment per project, the active one in that project's own colour. */
-  .deck-bar { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
-  .deck-seg { display: flex; gap: 6px; flex: 1; }
-  .deck-seg button {
-    flex: 1; height: 28px; padding: 0; border: 0; background: none; cursor: pointer; position: relative;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .deck-seg button::before {
-    content: ""; position: absolute; inset-inline: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 3px;
-    background: var(--line-2); transition: background-color .35s var(--ease-out), box-shadow .35s var(--ease-out);
-  }
-  .deck-seg button[aria-current="true"]::before {
-    background: rgb(var(--tint)); box-shadow: 0 0 12px rgba(var(--tint), .55);
-  }
-  .deck-seg button:focus-visible { outline: 2px solid rgb(var(--tint)); outline-offset: 2px; border-radius: 4px; }
-  .deck-count {
-    font-family: var(--font-display); font-weight: 600; font-size: .9375rem; color: var(--fg-2);
-    font-variant-numeric: tabular-nums; direction: ltr; min-width: 3.2em; text-align: end;
-  }
-  .deck-count b { color: rgb(var(--tint)); font-weight: 700; transition: color .35s var(--ease-out); }
 }
-@media (min-width: 901px) { .deck-bar { display: none; } }
-@media (prefers-reduced-motion: reduce) { .deck { scroll-behavior: auto; } }
+:root { --dim-max: .35; }
+:root[data-theme="light"] { --dim-max: .06; }
+@keyframes panel-recede { from { transform: scale(1); } to { transform: scale(.94); } }
+@keyframes panel-dim { from { opacity: 0; } to { opacity: var(--dim-max); } }
+@keyframes panel-hide { from { opacity: 1; } to { opacity: 0; } }
+/* Touch screens: the images' scroll tilt, the same way (rotateX -9deg..., rotateY 6deg... by distance from the screen
+   middle, until the card sticks; main.js measures --t0, --t1 and the tilt at the stick point, --d1). */
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 900px) {
+    .deck.is-css-tilt .panel-media > * {
+      animation: media-tilt linear both; animation-timeline: scroll(root block);
+      animation-range: var(--t0, 0px) var(--t1, 1px);
+    }
+  }
+}
+@keyframes media-tilt {
+  from { transform: rotateX(-9deg) rotateY(6deg); }
+  to { transform: rotateX(calc(var(--d1, 0) * -9deg)) rotateY(calc(var(--d1, 0) * 6deg)); }
+}
+/* while main.js measures the cards' places in the page, nothing sticks or animates (one synchronous read) */
+.deck.is-measuring .panel { position: relative !important; top: auto !important; animation: none !important; transform: none !important; }
+.deck.is-measuring .panel-media > * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .deck.is-css-recede .panel, .deck.is-css-recede .panel-dim, .deck.is-css-tilt .panel-media > * { animation: none; } }

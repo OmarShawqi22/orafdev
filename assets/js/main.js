@@ -374,9 +374,7 @@
   fitMocks();
   window.addEventListener('resize', fitMocks);
 
-  // Phones and tablets show the projects as a swipe row (styles.css "swipe row"): nothing in it follows the page scroll.
-  const railMQ = window.matchMedia('(max-width: 900px)');
-  const inRail = el => railMQ.matches && !!el.closest('.panel');
+  const deckCss = () => !reduced && window.matchMedia('(max-width: 900px)').matches && window.CSS && CSS.supports('animation-timeline: scroll()');
 
   /* ---------- Touch screens: the same motion, driven by scrolling ---------- */
   if (!finePointer && !reduced) {
@@ -405,13 +403,13 @@
       const liveRects = live.map(el => el.getBoundingClientRect());
       medias.forEach((media, i) => {
         const inner = media.firstElementChild, r = mediaRects[i];
-        if (!inner || inRail(media) || r.bottom < 0 || r.top > vh) return;
+        if (!inner || r.bottom < 0 || r.top > vh) return;
+        if (deckCss() && media.closest('.panel')) return; // styles.css tilts the project images (scroll-driven)
         const d = offset(r);
         inner.style.transform = `rotateX(${(-d * 9).toFixed(2)}deg) rotateY(${(d * 6).toFixed(2)}deg)`;
       });
       // the card in the middle of the screen plays its hover animation
       live.forEach((el, i) => {
-        if (inRail(el)) return; // the swipe row marks its own card (deck rail)
         const r = liveRects[i];
         el.classList.toggle('is-live', r.top < vh * 0.64 && r.bottom > vh * 0.36);
       });
@@ -527,7 +525,48 @@
       if (img.decode) img.decode().catch(() => {});
     });
   }));
-  const measureCards = () => panels.forEach(p => p.style.setProperty('--card-h', `${p.offsetHeight}px`));
+  // Phones/tablets: the recede (and the touch tilt) run as scroll-driven CSS animations (styles.css "driven by the
+  // browser's own scroll"), in step with the scroll in every browser, Instagram's included. Here we only measure,
+  // when the layout changes, the scroll positions where each card's recede and each image's tilt start and end.
+  const deckEl = $('.deck');
+  const cssRecede = !reduced && !!deckEl && window.CSS && CSS.supports('animation-timeline: scroll()');
+  const phoneMQ = window.matchMedia('(max-width: 900px)');
+  const cssMode = () => cssRecede && phoneMQ.matches;
+  const measureRecede = () => {
+    if (!cssMode()) { if (deckEl) deckEl.classList.remove('is-css-recede', 'is-css-tilt'); return; }
+    deckEl.classList.add('is-measuring');
+    const y = window.scrollY, vh = window.innerHeight;
+    const flow = panels.map(p => p.getBoundingClientRect().top + y);
+    const tops = panels.map(p => parseFloat(getComputedStyle(p).top) || 0);
+    const heights = panels.map(p => p.offsetHeight);
+    const medias = panels.map(p => $('.panel-media', p)).map(m => m && { m, top: m.getBoundingClientRect().top + y, h: m.offsetHeight });
+    deckEl.classList.remove('is-measuring');
+    panels.forEach((p, i) => {
+      if (i < panels.length - 1) {
+        // same rule as the scroll handler: the recede runs while the next card's top travels the height of this card
+        const r1 = flow[i + 1] - tops[i];
+        p.style.setProperty('--r0', `${(r1 - heights[i]).toFixed(1)}px`);
+        p.style.setProperty('--r1', `${r1.toFixed(1)}px`);
+        // fully covered once the next card has reached this card's top and is at least as tall as this (scaled) card
+        const covers = tops[i + 1] <= tops[i] + 1 && tops[i + 1] + heights[i + 1] >= tops[i] + heights[i] * 0.94 - 1;
+        p.style.setProperty('--h0', covers ? `${(r1 + 2).toFixed(1)}px` : '99999px');
+        p.style.setProperty('--h1', covers ? `${(r1 + 3).toFixed(1)}px` : '100000px');
+      }
+      const md = medias[i];
+      if (md && !finePointer) {
+        const t0 = md.top + md.h / 2 - vh;               // image centre at the bottom of the screen: full tilt
+        const t1 = Math.max(t0 + 1, flow[i] - tops[i]);  // the card sticks: the tilt holds from here
+        const d1 = Math.min(1, Math.max(-1, ((tops[i] + (md.top - flow[i]) + md.h / 2) / vh - 0.5) * 2));
+        md.m.style.setProperty('--t0', `${t0.toFixed(1)}px`);
+        md.m.style.setProperty('--t1', `${t1.toFixed(1)}px`);
+        md.m.style.setProperty('--d1', d1.toFixed(3));
+      }
+    });
+    deckEl.classList.add('is-css-recede');
+    deckEl.classList.toggle('is-css-tilt', !finePointer);
+    panels.forEach((p, i) => { p.style.transform = ''; dims[i].style.opacity = ''; p.classList.remove('is-covered'); });
+  };
+  const measureCards = () => { panels.forEach(p => p.style.setProperty('--card-h', `${p.offsetHeight}px`)); measureRecede(); };
   measureCards();
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(measureCards); panels.forEach(p => ro.observe(p)); }
   window.addEventListener('load', measureCards);
@@ -546,9 +585,11 @@
     // Each project panel recedes as the next one slides over it
     const stacking = !reduced;
     const dimMax = doc.dataset.theme === 'light' ? 0.06 : 0.35;
-    const rects = railMQ.matches ? [] : panels.map(p => p.getBoundingClientRect()); // read everything first, then write
-    if (!railMQ.matches) panels.forEach((p, i) => {
+    const css = cssMode();
+    const rects = panels.map(p => p.getBoundingClientRect()); // read everything first, then write
+    panels.forEach((p, i) => {
       const pr = rects[i], nr = rects[i + 1];
+      if (css) { p.classList.toggle('is-current', pr.top < vh * 0.6 && pr.bottom > vh * 0.3); return; } // CSS runs the recede
       const s = stacking && nr ? Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height)) : 0;
       p.style.transform = s ? `scale(${(1 - s * 0.06).toFixed(4)})` : '';
       dims[i].style.opacity = s ? (s * dimMax).toFixed(3) : '0';
@@ -583,38 +624,8 @@
   };
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   window.addEventListener('resize', onScroll);
-
-  /* ---------- Deck rail: phones and tablets ---------- */
-  // The card that fills the row plays its hover animation; the bar under the row shows which project is on
-  // screen in that project's colour, and a tap on a segment brings that project in.
-  const deckEl = $('.deck');
-  if (deckEl && panels.length) {
-    const bar = document.createElement('div');
-    bar.className = 'deck-bar';
-    const titles = panels.map(p => ($('.panel-title', p) || {}).textContent || '');
-    bar.innerHTML = `<div class="deck-seg">${panels.map((p, i) => `<button type="button" aria-label="${titles[i].replace(/"/g, '&quot;')}"></button>`).join('')}</div><span class="deck-count" aria-hidden="true"><b>1</b> / ${panels.length}</span>`;
-    deckEl.after(bar);
-    const segs = $$('.deck-seg button', bar);
-    const countB = $('.deck-count b', bar);
-    let active = -1;
-    const setActive = i => {
-      if (i === active || i < 0) return;
-      active = i;
-      bar.style.setProperty('--tint', panels[i].style.getPropertyValue('--tint'));
-      segs.forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
-      countB.textContent = String(i + 1);
-      if (railMQ.matches) panels.forEach((p, k) => { p.classList.toggle('is-live', k === i && !reduced); p.classList.toggle('is-current', k === i); });
-    };
-    const ratios = panels.map(() => 0);
-    const rio = new IntersectionObserver(entries => {
-      entries.forEach(e => { ratios[panels.indexOf(e.target)] = e.intersectionRatio; });
-      const best = ratios.indexOf(Math.max(...ratios));
-      if (ratios[best] > 0.5) setActive(best);
-    }, { root: deckEl, threshold: [0, 0.25, 0.5, 0.75, 1] });
-    panels.forEach(p => rio.observe(p));
-    segs.forEach((b, i) => b.addEventListener('click', () => panels[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest', inline: 'center' })));
-    setActive(0);
-  }
+  window.addEventListener('resize', measureCards);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureCards);
   new MutationObserver(onScroll).observe(doc, { attributes: true, attributeFilter: ['data-theme'] }); // the dim strength differs per theme
   onScroll();
 
