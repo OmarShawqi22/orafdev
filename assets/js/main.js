@@ -374,6 +374,10 @@
   fitMocks();
   window.addEventListener('resize', fitMocks);
 
+  // Phones and tablets show the projects as a swipe row (styles.css "swipe row"): nothing in it follows the page scroll.
+  const railMQ = window.matchMedia('(max-width: 900px)');
+  const inRail = el => railMQ.matches && !!el.closest('.panel');
+
   /* ---------- Touch screens: the same motion, driven by scrolling ---------- */
   if (!finePointer && !reduced) {
     document.body.classList.add('has-touch');
@@ -401,12 +405,13 @@
       const liveRects = live.map(el => el.getBoundingClientRect());
       medias.forEach((media, i) => {
         const inner = media.firstElementChild, r = mediaRects[i];
-        if (!inner || r.bottom < 0 || r.top > vh) return;
+        if (!inner || inRail(media) || r.bottom < 0 || r.top > vh) return;
         const d = offset(r);
         inner.style.transform = `rotateX(${(-d * 9).toFixed(2)}deg) rotateY(${(d * 6).toFixed(2)}deg)`;
       });
       // the card in the middle of the screen plays its hover animation
       live.forEach((el, i) => {
+        if (inRail(el)) return; // the swipe row marks its own card (deck rail)
         const r = liveRects[i];
         el.classList.toggle('is-live', r.top < vh * 0.64 && r.bottom > vh * 0.36);
       });
@@ -541,8 +546,8 @@
     // Each project panel recedes as the next one slides over it
     const stacking = !reduced;
     const dimMax = doc.dataset.theme === 'light' ? 0.06 : 0.35;
-    const rects = panels.map(p => p.getBoundingClientRect()); // read everything first, then write
-    panels.forEach((p, i) => {
+    const rects = railMQ.matches ? [] : panels.map(p => p.getBoundingClientRect()); // read everything first, then write
+    if (!railMQ.matches) panels.forEach((p, i) => {
       const pr = rects[i], nr = rects[i + 1];
       const s = stacking && nr ? Math.min(1, Math.max(0, 1 - (nr.top - pr.top) / pr.height)) : 0;
       p.style.transform = s ? `scale(${(1 - s * 0.06).toFixed(4)})` : '';
@@ -578,6 +583,38 @@
   };
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   window.addEventListener('resize', onScroll);
+
+  /* ---------- Deck rail: phones and tablets ---------- */
+  // The card that fills the row plays its hover animation; the bar under the row shows which project is on
+  // screen in that project's colour, and a tap on a segment brings that project in.
+  const deckEl = $('.deck');
+  if (deckEl && panels.length) {
+    const bar = document.createElement('div');
+    bar.className = 'deck-bar';
+    const titles = panels.map(p => ($('.panel-title', p) || {}).textContent || '');
+    bar.innerHTML = `<div class="deck-seg">${panels.map((p, i) => `<button type="button" aria-label="${titles[i].replace(/"/g, '&quot;')}"></button>`).join('')}</div><span class="deck-count" aria-hidden="true"><b>1</b> / ${panels.length}</span>`;
+    deckEl.after(bar);
+    const segs = $$('.deck-seg button', bar);
+    const countB = $('.deck-count b', bar);
+    let active = -1;
+    const setActive = i => {
+      if (i === active || i < 0) return;
+      active = i;
+      bar.style.setProperty('--tint', panels[i].style.getPropertyValue('--tint'));
+      segs.forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+      countB.textContent = String(i + 1);
+      if (railMQ.matches) panels.forEach((p, k) => { p.classList.toggle('is-live', k === i && !reduced); p.classList.toggle('is-current', k === i); });
+    };
+    const ratios = panels.map(() => 0);
+    const rio = new IntersectionObserver(entries => {
+      entries.forEach(e => { ratios[panels.indexOf(e.target)] = e.intersectionRatio; });
+      const best = ratios.indexOf(Math.max(...ratios));
+      if (ratios[best] > 0.5) setActive(best);
+    }, { root: deckEl, threshold: [0, 0.25, 0.5, 0.75, 1] });
+    panels.forEach(p => rio.observe(p));
+    segs.forEach((b, i) => b.addEventListener('click', () => panels[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest', inline: 'center' })));
+    setActive(0);
+  }
   new MutationObserver(onScroll).observe(doc, { attributes: true, attributeFilter: ['data-theme'] }); // the dim strength differs per theme
   onScroll();
 

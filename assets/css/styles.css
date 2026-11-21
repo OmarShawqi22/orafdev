@@ -1439,14 +1439,56 @@ html.is-scrolling .glow-ring > i { animation-play-state: paused; }
    and spent ~30% more GPU time painting without this). Phones keep their own tuning above. */
 @media (min-width: 901px) { .panel, .tl-fill, .system-fill, .cta-core, .stat dd { will-change: transform; } }
 
-/* Phones/tablets: a card's GPU layers stay the same for the whole scroll. Instagram's in-app browser drew a card's
-   image and text at a different place from the card's own box (empty boxes, two cards' text on top of each other)
-   whenever the layer list changed mid-scroll: a covered card dropped its layers (visibility), a card that started
-   receding got a transform node. Each card now keeps its own permanent layer, and a covered card is faded to 0
-   instead (not drawn, but its layers stay). Same look. */
+/* ==========================================================================
+   Phones and tablets: the projects are a swipe row, not a sticky stack
+   Instagram's in-app browser on Android could not draw the sticky stack (cards that stick, scale, darken and
+   cover each other while the page scrolls): cards went blank or showed two cards' text at once, whatever the
+   layer tuning. Here nothing moves while the page scrolls. The cards sit side by side in a native sideways
+   scroller, one per screen with the next one peeking in; the page scroll stays a plain scroll. Desktop keeps
+   the stack. main.js (deck rail) marks the card on screen and drives the bar under the row.
+   ========================================================================== */
 @media (max-width: 900px) {
-  .panel { will-change: transform, opacity; }
-  .panel.is-covered { visibility: visible; opacity: 0; pointer-events: none; }
-  /* the parts that slide when a card becomes active keep their layer too, instead of gaining one for each move */
-  .panel :is(.phone, .duo-back, .trio-back, .trio-phone, .trio-chip) { will-change: transform; }
+  .deck {
+    display: flex; gap: 12px; align-items: stretch;
+    overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 6px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .deck::-webkit-scrollbar { display: none; }
+  .panel {
+    flex: 0 0 min(86%, 560px); position: relative; top: auto; z-index: auto; transform: none !important;
+    scroll-snap-align: center; scroll-snap-stop: always; min-height: 0; will-change: auto;
+    display: flex; flex-direction: column;
+  }
+  .panel-info { flex: 1; justify-content: flex-start; }
+  .panel-actions { margin-top: auto; padding-top: 6px; }
+  .panel-dim { display: none; }
+  .panel.is-covered { visibility: visible; }
+  /* no scroll-driven tilt inside the row: the card you land on plays its own animation instead */
+  .panel-media { perspective: none; }
+  .panel-media > * { transform: none !important; }
+
+  /* The bar under the row: one segment per project, the active one in that project's own colour. */
+  .deck-bar { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
+  .deck-seg { display: flex; gap: 6px; flex: 1; }
+  .deck-seg button {
+    flex: 1; height: 28px; padding: 0; border: 0; background: none; cursor: pointer; position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .deck-seg button::before {
+    content: ""; position: absolute; inset-inline: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 3px;
+    background: var(--line-2); transition: background-color .35s var(--ease-out), box-shadow .35s var(--ease-out);
+  }
+  .deck-seg button[aria-current="true"]::before {
+    background: rgb(var(--tint)); box-shadow: 0 0 12px rgba(var(--tint), .55);
+  }
+  .deck-seg button:focus-visible { outline: 2px solid rgb(var(--tint)); outline-offset: 2px; border-radius: 4px; }
+  .deck-count {
+    font-family: var(--font-display); font-weight: 600; font-size: .9375rem; color: var(--fg-2);
+    font-variant-numeric: tabular-nums; direction: ltr; min-width: 3.2em; text-align: end;
+  }
+  .deck-count b { color: rgb(var(--tint)); font-weight: 700; transition: color .35s var(--ease-out); }
 }
+@media (min-width: 901px) { .deck-bar { display: none; } }
+@media (prefers-reduced-motion: reduce) { .deck { scroll-behavior: auto; } }
