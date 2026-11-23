@@ -169,7 +169,25 @@
     try { localStorage.setItem('orafdev-theme', doc.dataset.theme); } catch (e) {}
     syncTheme();
   };
-  themeBtn?.addEventListener('click', () => {
+  // The ink's two images are only used by the switch, so the browser used to fetch them at the first press and the
+  // first spread started without its shape. Fetch and decode them once the page has settled, or as soon as a
+  // pointer or the keyboard reaches the button; a press that comes sooner waits for them (500 ms at most).
+  let inkReady = null;
+  const loadInk = () => inkReady || (inkReady = Promise.all(['ink-mask.png', 'ink-glow.png'].map(n => {
+    const im = new Image(); im.crossOrigin = 'anonymous'; // masks are fetched in CORS mode: same mode, same copy
+    im.src = `${root}assets/img/${n}`;
+    const warm = document.createElement('i'); // and a 1px element keeps the stylesheet's own copy loaded
+    warm.className = `ink-warm is-${n.slice(4, 8)}`; warm.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(warm);
+    return im.decode().then(() => im, () => im);
+  })));
+  if (themeBtn && !reduced && document.startViewTransition) {
+    const calm = window.requestIdleCallback ? cb => requestIdleCallback(cb, { timeout: 4000 }) : cb => setTimeout(cb, 1500);
+    window.addEventListener('load', () => calm(loadInk));
+    ['pointerenter', 'pointerdown', 'focus'].forEach(n => themeBtn.addEventListener(n, loadInk, { once: true, passive: true }));
+  }
+  let inking = false;
+  themeBtn?.addEventListener('click', async () => {
     // Ink spread: the new theme bleeds out from the button through an ink-blot mask.
     // Browsers without View Transitions, and reduced-motion users, get the instant switch.
     if (reduced || !document.startViewTransition) {
@@ -177,6 +195,9 @@
       requestAnimationFrame(() => requestAnimationFrame(() => doc.classList.remove('theme-switching')));
       return;
     }
+    if (inking) return; // one spread at a time
+    inking = true;
+    await Promise.race([loadInk(), new Promise(r => setTimeout(r, 500))]);
     const r = themeBtn.getBoundingClientRect();
     const x = r.left + r.width / 2, y = r.top + r.height / 2;
     const reach = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
@@ -190,7 +211,7 @@
     glow.setAttribute('aria-hidden', 'true');
     const vt = document.startViewTransition(() => { flipTheme(); document.body.appendChild(glow); });
     vt.ready.then(() => glow.classList.add('is-on')).catch(() => {});
-    vt.finished.finally(() => { glow.remove(); doc.classList.remove('ink-switch', 'theme-switching'); });
+    vt.finished.finally(() => { inking = false; glow.remove(); doc.classList.remove('ink-switch', 'theme-switching'); });
   });
   const syncLangBtn = () => {
     if (!langBtn) return;
@@ -443,66 +464,157 @@
     cio.observe(el);
   });
 
-  /* ---------- Testimonials (real entries from config only) ---------- */
+  /* ---------- Client reviews: a moving belt (real entries from config only) ----------
+     One WAAPI translate on the track, so the compositor moves it. No masks, blurs or per-frame layout: that is
+     what broke the project deck in Instagram's in-app browser. Arabic site = Arabic quotes, English site = the
+     translation; the belt runs with the reading direction. */
   const voices = $('#testimonials');
-  const quotes = (cfg.testimonials || []).filter(q => q && q.quote && q.name);
+  const quotes = (cfg.testimonials || []).filter(q => q && q.en && q.ar && q.en.quote && q.ar.quote);
   if (voices && quotes.length) {
-    const track = $('[data-carousel]', voices);
-    const dots = $('[data-dots]', voices);
+    const belt = $('[data-belt]', voices), track = $('[data-belt-track]', voices);
+    const prev = $('[data-prev]', voices), next = $('[data-next]', voices), hold = $('[data-hold]', voices);
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-    const star = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9z"/></svg>';
-    track.innerHTML = quotes.map((q, i) => {
-      const initials = q.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-      const who = [q.role, q.company].filter(Boolean).map(esc).join(', ');
-      const rating = Math.max(0, Math.min(5, Number(q.rating) || 0));
-      return `<figure class="quote" role="group" aria-roledescription="slide" aria-label="${i + 1} / ${quotes.length}" ${q.lang ? `lang="${esc(q.lang)}" dir="${q.lang === 'ar' ? 'rtl' : 'ltr'}"` : ''}>
-        <svg class="quote-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M13 8H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Zm15 0h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Z"/></svg>
-        ${rating ? `<div class="quote-stars" aria-label="${rating} / 5">${star.repeat(rating)}</div>` : ''}
-        <blockquote>${esc(q.quote)}</blockquote>
-        <footer>
-          <span class="quote-avatar" aria-hidden="true">${q.avatar ? `<img src="${esc(root + q.avatar)}" alt="" loading="lazy">` : esc(initials)}</span>
-          <span><span class="quote-name">${esc(q.name)}</span>${who ? `<br><span class="quote-role">${who}</span>` : ''}</span>
-          ${q.project ? `<span class="quote-project">${esc(q.project)}</span>` : ''}
-        </footer>
+    const card = (q, lang) => {
+      const c = q[lang];
+      return `<figure class="voice">
+        <svg class="voice-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M13 8H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Zm15 0h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Z"/></svg>
+        <blockquote>${esc(c.quote)}</blockquote>
+        <figcaption>
+          <span class="voice-avatar" aria-hidden="true">${esc([...c.name][0])}</span>
+          <span class="voice-who"><b>${esc(c.name)}</b><span>${esc(c.who)}</span></span>
+          ${q.score ? `<span class="voice-score" dir="ltr">${esc(q.score)}</span>` : ''}
+        </figcaption>
       </figure>`;
-    }).join('');
-    voices.hidden = false;
-    const cardsEls = $$('.quote', track);
-    dots.innerHTML = cardsEls.map((_, i) => `<button type="button" aria-label="${i + 1}"></button>`).join('');
-    const dotBtns = $$('button', dots);
-    const prev = $('[data-prev]', voices), next = $('[data-next]', voices);
-    const stepSize = () => (cardsEls[1] ? Math.abs(cardsEls[1].offsetLeft - cardsEls[0].offsetLeft) : track.clientWidth);
-    const dir = () => (doc.dir === 'rtl' ? -1 : 1);
-    const go = d => track.scrollBy({ left: d * dir() * stepSize(), behavior: reduced ? 'auto' : 'smooth' });
-    prev.addEventListener('click', () => go(-1));
-    next.addEventListener('click', () => go(1));
-    dotBtns.forEach((b, i) => b.addEventListener('click', () => cardsEls[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest', inline: 'start' })));
-    track.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(dir()); if (e.key === 'ArrowLeft') go(-dir()); });
-    const vis = new IntersectionObserver(entries => {
-      entries.forEach(e => e.target.classList.toggle('is-dim', e.intersectionRatio < 0.85));
-      const firstVisible = cardsEls.findIndex(c => !c.classList.contains('is-dim'));
-      dotBtns.forEach((b, i) => b.setAttribute('aria-current', String(i === Math.max(0, firstVisible))));
-      const max = track.scrollWidth - track.clientWidth;
-      const pos = Math.abs(track.scrollLeft);
-      prev.disabled = pos < 4; next.disabled = pos > max - 4;
-    }, { root: track, threshold: [0, 0.85, 1] });
-    cardsEls.forEach(c => vis.observe(c));
-    // Drag to scroll with a mouse; touch uses native swipe
-    let dragX = null, startLeft = 0, moved = false;
-    track.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; dragX = e.clientX; startLeft = track.scrollLeft; moved = false; track.classList.add('is-dragging'); });
-    window.addEventListener('pointermove', e => { if (dragX === null) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 4) moved = true; track.scrollLeft = startLeft - dx; });
-    window.addEventListener('pointerup', () => { if (dragX === null) return; dragX = null; track.classList.remove('is-dragging'); if (moved) go(0); });
-    // Gentle auto-advance, paused on hover, focus or reduced motion
-    if (!reduced && quotes.length > 1) {
-      let paused = false;
-      ['pointerenter', 'focusin'].forEach(ev => voices.addEventListener(ev, () => { paused = true; }));
-      ['pointerleave', 'focusout'].forEach(ev => voices.addEventListener(ev, () => { paused = false; }));
-      setInterval(() => {
-        if (paused || document.hidden) return;
-        const max = track.scrollWidth - track.clientWidth;
-        if (Math.abs(track.scrollLeft) >= max - 4) track.scrollTo({ left: 0, behavior: 'smooth' }); else go(1);
-      }, 6500);
-    }
+    };
+    let anim = null, group = 0, stepPx = 0, seen = false, inView = false, held = false, over = false, raf = 0, dragX = null;
+    const ARRIVE_MS = 1700 * (1 + 13 / 4);
+    const speed = () => (window.innerWidth < 720 ? 26 : 34); // px per second
+    const want = () => (inView && !held && !over && dragX === null && !document.hidden ? 1 : 0);
+
+    const build = () => {
+      const lang = I18N.lang === 'ar' ? 'ar' : 'en';
+      const set = quotes.map(q => card(q, lang)).join('');
+      const at = anim ? (anim.effect.getComputedTiming().progress || 0) : 0;
+      if (anim) { anim.cancel(); anim = null; }
+      track.innerHTML = `<div class="voice-set">${set}</div>`;
+      voices.hidden = false;
+      const first = track.firstElementChild;
+      group = first.getBoundingClientRect().width;
+      const cards = first.children;
+      stepPx = cards[1] ? Math.abs(cards[1].offsetLeft - cards[0].offsetLeft) : group;
+      if (reduced || !track.animate || !group) return; // a plain row you can swipe
+      const copies = Math.ceil(belt.clientWidth / group) + 1;
+      for (let i = 1; i < copies; i++) {
+        const c = first.cloneNode(true);
+        c.setAttribute('aria-hidden', 'true');
+        track.appendChild(c);
+      }
+      const to = (doc.dir === 'rtl' ? 1 : -1) * group;
+      anim = track.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${to}px,0,0)` }],
+        { duration: group / speed() * 1000, iterations: Infinity });
+      // the first run-in covers ARRIVE_MS of walking time, so it starts that far back and ends on the first card
+      anim.currentTime = seen ? at * group / speed() * 1000 : Math.max(0, group / speed() * 1000 - ARRIVE_MS);
+      cancelAnimationFrame(raf); raf = 0; pace = want();
+      if (!pace) anim.pause();
+    };
+
+    // Ease the belt between moving and still instead of cutting it. A changing playbackRate leaves the animation
+    // pending (it stands still), so while the pace changes we move currentTime ourselves; at walking pace the
+    // compositor takes over again.
+    let pace = 0;
+    const put = v => { const dur = anim.effect.getTiming().duration; anim.currentTime = ((v % dur) + dur) % dur; };
+    const glide = (from, to, ms) => {
+      cancelAnimationFrame(raf);
+      if (!anim) return;
+      anim.pause();
+      let at = anim.currentTime || 0, last = performance.now();
+      const t0 = last;
+      const tick = now => {
+        const k = Math.min(1, Math.max(0, now - t0) / ms);
+        pace = from + (to - from) * (1 - Math.pow(1 - k, 3));
+        at += Math.max(0, now - last) * pace; last = now;
+        put(at);
+        if (k < 1) raf = requestAnimationFrame(tick);
+        else { raf = 0; if (to) anim.play(); }
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    const settle = () => {
+      if (!anim) return;
+      if (!inView || document.hidden) { cancelAnimationFrame(raf); raf = 0; pace = 0; anim.pause(); return; }
+      if (pace !== want()) glide(pace, want(), 420);
+    };
+    // First sight: the belt arrives with momentum and slows to its walking pace. Touch screens wait for the
+    // scroll to rest, so nothing starts mid-swipe.
+    const arrive = () => { if (!seen && inView && want()) { seen = true; glide(14, 1, 1700); } };
+    const touch = window.matchMedia('(hover: none)').matches;
+    let scrolling = false, restTimer = 0;
+    if (touch) window.addEventListener('scroll', () => { scrolling = true; clearTimeout(restTimer); restTimer = setTimeout(() => { scrolling = false; if (inView) (seen ? settle : arrive)(); }, 160); }, { passive: true });
+    new IntersectionObserver(es => {
+      inView = es[es.length - 1].isIntersecting;
+      if (inView && touch && scrolling) return;
+      if (inView && !seen) arrive(); else settle();
+    }, { threshold: 0.15 }).observe(belt);
+    document.addEventListener('visibilitychange', settle);
+
+    // Nudge by one card, or by a drag
+    const nudge = (px, ms) => {
+      if (!anim) { belt.scrollBy({ left: px * (doc.dir === 'rtl' ? -1 : 1), behavior: reduced ? 'auto' : 'smooth' }); return; }
+      const dt = px / speed() * 1000;
+      const start = anim.currentTime || 0, t0 = performance.now();
+      if (!ms) { put(start + dt); return; }
+      cancelAnimationFrame(raf);
+      anim.pause(); pace = 0;
+      const tick = now => {
+        const k = Math.min(1, Math.max(0, now - t0) / ms);
+        put(start + dt * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) raf = requestAnimationFrame(tick); else { raf = 0; settle(); }
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    prev.addEventListener('click', () => { seen = true; nudge(-stepPx, 620); });
+    next.addEventListener('click', () => { seen = true; nudge(stepPx, 620); });
+    const syncHold = () => {
+      hold.setAttribute('aria-pressed', String(held));
+      I18N.setAttr(hold, 'aria-label', held ? 'Play the reviews' : 'Pause the reviews');
+    };
+    hold.addEventListener('click', () => { held = !held; seen = true; syncHold(); settle(); });
+    if (reduced) hold.hidden = true;
+
+    belt.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { over = true; settle(); } });
+    belt.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { over = false; settle(); } });
+    belt.addEventListener('pointerdown', e => {
+      if (!anim || e.button) return;
+      dragX = e.clientX; seen = true;
+      cancelAnimationFrame(raf); raf = 0; pace = 0; anim.pause();
+      belt.classList.add('is-dragging');
+      try { belt.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    belt.addEventListener('pointermove', e => {
+      if (dragX === null) return;
+      nudge((dragX - e.clientX) * (doc.dir === 'rtl' ? -1 : 1), 0);
+      dragX = e.clientX;
+    });
+    const drop = e => {
+      if (dragX === null) return;
+      dragX = null;
+      belt.classList.remove('is-dragging');
+      over = e.pointerType === 'mouse' && belt.matches(':hover');
+      settle();
+    };
+    belt.addEventListener('pointerup', drop);
+    belt.addEventListener('pointercancel', drop);
+
+    build();
+    syncHold();
+    document.addEventListener('orafdev:lang', build);
+    document.fonts?.ready.then(build);
+    let lastW = window.innerWidth, sizeTimer = 0;
+    window.addEventListener('resize', () => { // phones fire resize when the address bar moves: width changes only
+      if (window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
+      clearTimeout(sizeTimer); sizeTimer = setTimeout(build, 180);
+    });
   }
 
   /* ---------- Scroll-linked: work deck, system, timeline, CTA ---------- */
