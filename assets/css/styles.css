@@ -664,60 +664,60 @@ p { text-wrap: pretty; }
 @keyframes flow { from { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } to { top: 100%; opacity: 0; } }
 
 /* ==========================================================================
-   Client reviews: the same card as the projects, the review on one side and the project on the other
+   Client reviews: two rows of cards that keep moving, in opposite directions (main.js "Client reviews")
    ========================================================================== */
-.review {
-  display: grid; grid-template-columns: 5fr 7fr; border-radius: var(--r-xl); border: 1px solid var(--line); overflow: hidden;
-  background: radial-gradient(70% 90% at 100% 0%, rgba(var(--tint), .13), transparent 60%), linear-gradient(180deg, var(--surface), var(--bg-2));
-  box-shadow: var(--shadow-2);
+.voices { overflow: clip; }
+.voices-head { max-width: none; grid-template-columns: 1fr auto; align-items: end; }
+.voices-head > div:first-child { display: grid; gap: 18px; }
+.ctrl-btn { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line-2); background: transparent; color: var(--fg); display: grid; place-items: center; cursor: pointer; transition: border-color .25s, background .25s; }
+.ctrl-btn:hover { border-color: var(--line-3); background: var(--surface-2); }
+.ctrl-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ctrl-btn .i-play, .ctrl-btn[aria-pressed="true"] .i-pause { display: none; }
+.ctrl-btn[aria-pressed="true"] .i-play { display: block; }
+
+/* Full width on purpose. The edges fade into the page with two plain gradients laid on top (a mask would make the
+   browser redraw both rows off screen on every frame). */
+.voice-wall { position: relative; display: grid; gap: 22px; padding-block: 12px 30px; }
+.voice-wall::before, .voice-wall::after { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; width: clamp(28px, 9vw, 180px); pointer-events: none; }
+.voice-wall::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.voice-wall::after { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+.voice-belt { touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; min-width: 0; }
+.voice-belt.is-dragging { cursor: grabbing; }
+.voice-track { display: flex; width: max-content; padding-inline-start: max(var(--gutter), calc((100vw - var(--wrap)) / 2)); }
+.voice-set { display: flex; flex: none; align-items: stretch; }
+.voice {
+  flex: none; width: min(82vw, 408px); margin-inline-end: 22px; display: flex; flex-direction: column; gap: 18px; padding: 28px; position: relative;
+  border-radius: var(--r-xl); border: 1px solid var(--line-2); box-shadow: var(--shadow-1);
+  background: radial-gradient(90% 70% at 100% 0%, rgba(var(--ion-rgb), .1), transparent 60%), linear-gradient(180deg, var(--surface), var(--bg-2));
+  transition: border-color .3s, transform .45s var(--ease-out);
 }
-.review-info { display: flex; flex-direction: column; justify-content: center; gap: 20px; padding: clamp(26px, 3.4vw, 48px); min-width: 0; }
-.review-mark { width: 40px; height: 40px; fill: var(--azure); margin-bottom: -6px; }
-:root[data-theme="dark"] .review-mark { fill: var(--ion); }
-.review blockquote { margin: 0; font-family: var(--font-display); font-size: clamp(1.125rem, 1.45vw, 1.3rem); line-height: 1.5; color: var(--fg); }
-:root[lang="ar"] .review blockquote { font-family: "IBM Plex Sans Arabic", var(--font); line-height: 1.85; }
-.review-who { display: flex; align-items: center; gap: 14px; }
-.review-avatar { width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.25rem; color: #fff; background: var(--brand-btn); }
-.review-id { display: grid; line-height: 1.4; min-width: 0; }
-.review-id b { color: var(--fg); font-weight: 600; font-size: 1.0625rem; }
-.review-id span { color: var(--muted); font-size: .9375rem; }
-.review-score { margin-inline-start: auto; font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; color: var(--accent-text); }
-.review-built { display: grid; gap: 2px; padding-top: 18px; border-top: 1px solid var(--line); line-height: 1.5; }
-.review-built span { color: var(--muted); font-size: .9375rem; }
-.review-built b { color: var(--fg); font-weight: 600; }
-.review .panel-actions { margin-top: 0; }
-.review-note { color: var(--muted); font-size: .9375rem; margin: -6px 0 0; }
-:root[lang="ar"] .review-note { display: none; }
-.review-media { display: grid; place-items: center; padding: clamp(18px, 2.4vw, 36px); background: #070E28; min-width: 0; overflow: hidden;
-  --line: rgba(140, 170, 255, .12); --line-2: rgba(140, 170, 255, .21); --surface-2: #0F1B42; --surface-3: #162452; --fg-2: #C9D1EE; --muted: #8E9AC6; }
-.review-frame { width: 100%; max-width: 760px; border-radius: 14px; overflow: hidden; background: #081130; box-shadow: 0 50px 90px -40px rgba(0, 3, 20, .85), 0 0 0 1px var(--line-2); }
-.review-frame .mk-bar { padding: 6px 14px; min-height: 48px; }
-.review-url { margin-inline: 10px auto; padding: 3px 14px; border-radius: 6px; background: var(--surface-2); color: var(--fg-2); font-size: .875rem; line-height: 1.6; }
-.review-hold { width: 44px; height: 44px; margin-inline-end: -10px; border: 0; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; border-radius: 8px; }
-.review-hold:hover { color: #fff; }
-.review-hold svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.review-hold .i-play, .review-hold[aria-pressed="true"] .i-pause { display: none; }
-.review-hold[aria-pressed="true"] .i-play { display: block; }
-.review-view { display: block; position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #F7F5EF; }
-.review-view img { position: absolute; inset: 0 0 auto; width: 100%; height: auto; animation: review-scroll 20s cubic-bezier(.6, 0, .3, 1) infinite paused; }
-.review.is-playing .review-view img { animation-play-state: running; }
-/* stops on each of the three parts of the capture (1120 x 1960: the parts start at 0, 700 and 1330 px; the frame shows 700) */
-@keyframes review-scroll {
-  0%, 14% { transform: translate3d(0, 0, 0); }
-  30%, 46% { transform: translate3d(0, -35.714%, 0); }
-  62%, 78% { transform: translate3d(0, -64.286%, 0); }
-  94%, 100% { transform: translate3d(0, 0, 0); }
+@media (hover: hover) { .voice:hover { border-color: rgba(var(--azure-rgb), .6); transform: translateY(-6px); } }
+.voice-mark { width: 36px; height: 36px; fill: var(--azure); }
+:root[data-theme="dark"] .voice-mark { fill: var(--ion); }
+.voice blockquote { margin: 0; flex: 1; font-family: var(--font-display); font-size: 1.125rem; line-height: 1.5; color: var(--fg); }
+:root[lang="ar"] .voice blockquote { font-family: "IBM Plex Sans Arabic", var(--font); line-height: 1.8; }
+.voice figcaption { display: flex; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid var(--line); }
+.voice-face { width: 56px; height: 56px; flex: none; border-radius: 50%; overflow: hidden; }
+.voice-who { display: grid; line-height: 1.4; min-width: 0; }
+.voice-who b { color: var(--fg); font-weight: 600; font-size: 1.0625rem; }
+.voice-who span { font-size: .9375rem; color: var(--muted); }
+.voice-score { margin-inline-start: auto; font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; color: var(--accent-text); }
+.voice--line { width: auto; max-width: min(86vw, 460px); flex-direction: row; align-items: center; gap: 16px; padding: 16px 24px 16px 18px; border-radius: 22px; }
+:root[dir="rtl"] .voice--line { padding: 16px 18px 16px 24px; }
+.voice--line .voice-face { width: 48px; height: 48px; }
+.voice--line blockquote { font-size: 1.0625rem; line-height: 1.45; }
+.voice--line figcaption { display: block; padding: 2px 0 0; border: 0; color: var(--muted); font-size: .9375rem; }
+.voice-note { color: var(--muted); font-size: .9375rem; }
+:root[lang="ar"] .voice-en { display: none; }
+@media (max-width: 600px) {
+  .voice-wall { gap: 16px; }
+  .voice { padding: 24px; width: min(80vw, 340px); margin-inline-end: 16px; }
+  .voice--line { width: auto; padding: 14px 20px 14px 16px; }
 }
-.review-info, .review-view img { transition: opacity .26s; }
-.review.is-swapping .review-info, .review.is-swapping .review-view img { opacity: 0; }
-.review-names { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
-.review-names button { min-height: 44px; padding: 0 18px; border-radius: var(--r-m); border: 1px solid var(--line-2); background: transparent; color: var(--fg-2); font-weight: 600; cursor: pointer; transition: border-color .25s, background .25s, color .25s; }
-.review-names button[aria-pressed="true"] { background: var(--surface); border-color: var(--azure); color: var(--fg); }
-@media (max-width: 900px) {
-  .review { grid-template-columns: minmax(0, 1fr); }
-  .review-media { order: -1; padding: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .voice-belt { overflow-x: auto; touch-action: auto; cursor: auto; }
+  .voice { transition: none; }
 }
-@media (prefers-reduced-motion: reduce) { .review-view img { animation: none; } .review-info, .review-view img { transition: none; } }
 
 /* ==========================================================================
    Pricing

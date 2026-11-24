@@ -81,15 +81,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..800&family=Funnel+Sans:wght@400..700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261125a">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261125b">
   <script src="assets/js/prefs.js?v=20261124a"></script>
 
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
   </script>
-  <script src="assets/js/config.js?v=8"></script>
-  <script src="assets/js/i18n.js?v=20261125a" defer></script>
-  <script src="assets/js/main.js?v=20261125a" defer></script>
+  <script src="assets/js/config.js?v=9"></script>
+  <script src="assets/js/i18n.js?v=20261125b" defer></script>
+  <script src="assets/js/main.js?v=20261125b" defer></script>
   <script src="assets/js/silk3d.js?v=20261118f" defer></script>
   <script type="module" src="assets/js/hero3d.js?v=20261118f"></script>
   <!-- Microsoft Clarity (visitor analytics), started after the page has loaded -->
@@ -520,40 +520,22 @@
       </div>
     </section>
 
-    <!-- ============ Client reviews: each one beside the project we built (entries in config.js) ============ -->
+    <!-- ============ Client reviews: two moving rows (entries in config.js) ============ -->
     <section class="voices section" id="testimonials" aria-labelledby="voices-title" hidden>
       <div class="wrap">
-        <header class="section-head">
-          <h2 id="voices-title" class="h-xl reveal">What our clients say</h2>
-          <p class="lead reveal">Real feedback, next to the project we built.</p>
+        <header class="section-head voices-head">
+          <div>
+            <h2 id="voices-title" class="h-xl reveal">What our clients say</h2>
+            <p class="lead reveal">Real feedback from people our team has worked with.</p>
+          </div>
+          <button class="ctrl-btn reveal" type="button" data-hold aria-pressed="false" aria-label="Pause the reviews"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
         </header>
-        <div class="review-names" data-review-names role="group" aria-label="Client testimonials" hidden></div>
-        <article class="review" data-review aria-live="polite">
-          <div class="review-info">
-            <svg class="review-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M13 8H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Zm15 0h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Z"/></svg>
-            <blockquote data-r="quote"></blockquote>
-            <div class="review-who">
-              <span class="review-avatar" data-r="initial" aria-hidden="true"></span>
-              <span class="review-id"><b data-r="name"></b><span data-r="who"></span></span>
-              <span class="review-score" data-r="score" dir="ltr" hidden></span>
-            </div>
-            <p class="review-built"><span>What we built</span><b data-r="project"></b></p>
-            <div class="panel-actions">
-              <a class="live-btn" data-r="live" target="_blank" rel="noopener"><span class="live-label">Visit live site</span><span class="live-arrow" aria-hidden="true">→</span></a>
-              <a class="link-btn" data-r="case" hidden>Case study</a>
-            </div>
-            <p class="review-note">Translated from Arabic.</p>
-          </div>
-          <div class="review-media">
-            <div class="review-frame">
-              <div class="mk-bar"><i></i><i></i><i></i><span class="review-url" data-r="url" dir="ltr"></span>
-                <button class="review-hold" type="button" data-r="hold" aria-pressed="false" aria-label="Pause the preview"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
-              </div>
-              <a class="review-view" data-r="view" target="_blank" rel="noopener"><img data-r="shot" alt="" decoding="async"></a>
-            </div>
-          </div>
-        </article>
       </div>
+      <div class="voice-wall" role="group" aria-label="Client testimonials">
+        <div class="voice-belt" data-belt><div class="voice-track" data-belt-track></div></div>
+        <div class="voice-belt voice-belt--lines" data-belt><div class="voice-track" data-belt-track></div></div>
+      </div>
+      <div class="wrap"><p class="voice-note"><span>Illustrated avatars.</span> <span class="voice-en">Quotes translated from Arabic.</span></p></div>
     </section>
 
     <!-- ============ Talk to us: the closing moment ============ -->

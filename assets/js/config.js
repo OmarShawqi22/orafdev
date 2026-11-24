@@ -35,28 +35,26 @@ window.ORAFDEV = {
 
   /*
     Real client feedback only, word for word in Arabic, with an English translation.
-    A review shows only when it has "link" (the live project) and "shot" (a real capture of it, 1120 x 1960, per
-    language); the others wait here. Never add feedback from our own team. score: only when the client gave one.
+    "lines" are short parts of the same quote, word for word, for the second row. score: only when the client gave one.
+    Never add feedback from our own team, invented reviews, or photos of people who are not the client.
   */
   testimonials: [
     {
-      link: "https://alttor.com/", case: "work/attoor.html", tint: "232, 170, 40",
-      shot: { en: "assets/img/review-alttor-en.webp", ar: "assets/img/review-alttor-ar.webp" },
-      ar: { name: "محمد علي", who: "الطور للهندسة والإنشاءات", project: "موقع الشركة بالعربية والإنجليزية", quote: "بصراحة كانت تجربة ممتازة، وسرعة التنفيذ فاقت توقعاتي، والموقع طلع بشكل احترافي ومميز. أعجبني اهتمامكم بالتفاصيل وسلاسة التواصل معكم. يعطيكم ألف عافية، ومشكورين على جهودكم وإبداعكم، تستاهلون كل خير." },
-      en: { name: "Mohammed Ali", who: "Alttor.CEGS", project: "Company website in English and Arabic", quote: "Honestly, it was an excellent experience. Delivery was faster than I expected, and the website came out professional and distinctive. I liked your attention to detail and how smooth it was to communicate with you. Thank you for your effort and creativity. You deserve the best." },
+      ar: { name: "محمد علي", who: "الطور للهندسة والإنشاءات", quote: "بصراحة كانت تجربة ممتازة، وسرعة التنفيذ فاقت توقعاتي، والموقع طلع بشكل احترافي ومميز. أعجبني اهتمامكم بالتفاصيل وسلاسة التواصل معكم. يعطيكم ألف عافية، ومشكورين على جهودكم وإبداعكم، تستاهلون كل خير.", lines: ["سرعة التنفيذ فاقت توقعاتي", "أعجبني اهتمامكم بالتفاصيل وسلاسة التواصل معكم"] },
+      en: { name: "Mohammed Ali", who: "Alttor.CEGS", quote: "Honestly, it was an excellent experience. Delivery was faster than I expected, and the website came out professional and distinctive. I liked your attention to detail and how smooth it was to communicate with you. Thank you for your effort and creativity. You deserve the best.", lines: ["Delivery was faster than I expected", "I liked your attention to detail and how smooth it was to communicate with you"] },
     },
     {
       score: "10/10",
-      ar: { name: "عدي", who: "موقع شخصي (بورتفوليو)", quote: "أشكركم على جهودكم واهتمامكم. أعطي تجربتي مع فريق ORAFDEV تقييم 10/10، كان التعامل احترافيًا والنتيجة رائعة. البورتفوليو سيساعدني بالتأكيد في إبراز مهاراتي ومشاريعي بشكل أفضل." },
-      en: { name: "Odai", who: "Portfolio website", quote: "Thank you for your effort and care. I rate my experience with the ORAFDEV team 10/10. They were professional to deal with, and the result was wonderful. The portfolio will definitely help me show my skills and projects better." },
+      ar: { name: "عدي", who: "موقع شخصي (بورتفوليو)", quote: "أشكركم على جهودكم واهتمامكم. أعطي تجربتي مع فريق ORAFDEV تقييم 10/10، كان التعامل احترافيًا والنتيجة رائعة. البورتفوليو سيساعدني بالتأكيد في إبراز مهاراتي ومشاريعي بشكل أفضل.", lines: ["كان التعامل احترافيًا والنتيجة رائعة", "أعطي تجربتي مع فريق ORAFDEV تقييم 10/10"] },
+      en: { name: "Odai", who: "Portfolio website", quote: "Thank you for your effort and care. I rate my experience with the ORAFDEV team 10/10. They were professional to deal with, and the result was wonderful. The portfolio will definitely help me show my skills and projects better.", lines: ["They were professional to deal with, and the result was wonderful", "I rate my experience with the ORAFDEV team 10/10"] },
     },
     {
-      ar: { name: "سلمان أحمد", who: "موقع شخصي (بورتفوليو)", quote: "والله شغلكم فخم جدًا، ما شاء الله عليكم، والنتيجة طلعت أجمل مما توقعت. يعطيكم ألف عافية، ومشكورين على إبداعكم واحترافيتكم، ومنها للأعلى يا رب." },
-      en: { name: "Salman Ahmed", who: "Portfolio website", quote: "Your work is truly premium, mashallah, and the result came out even more beautiful than I expected. Thank you for your creativity and professionalism. Onward and upward, God willing." },
+      ar: { name: "سلمان أحمد", who: "موقع شخصي (بورتفوليو)", quote: "والله شغلكم فخم جدًا، ما شاء الله عليكم، والنتيجة طلعت أجمل مما توقعت. يعطيكم ألف عافية، ومشكورين على إبداعكم واحترافيتكم، ومنها للأعلى يا رب.", lines: ["النتيجة طلعت أجمل مما توقعت", "والله شغلكم فخم جدًا"] },
+      en: { name: "Salman Ahmed", who: "Portfolio website", quote: "Your work is truly premium, mashallah, and the result came out even more beautiful than I expected. Thank you for your creativity and professionalism. Onward and upward, God willing.", lines: ["The result came out even more beautiful than I expected", "Your work is truly premium"] },
     },
     {
-      ar: { name: "راشد", who: "موقع شخصي (بورتفوليو)", quote: "ما قصّرتوا أبد، شغل يبيض الوجه واحترافية في كل التفاصيل. سعيد جدًا بتعاملي معكم، ويعطيكم ألف عافية على هالإبداع. تستاهلون كل خير!" },
-      en: { name: "Rashid", who: "Portfolio website", quote: "You held nothing back. This is work to be proud of, professional in every detail. I'm really happy I worked with you, and thank you for this creativity. You deserve the best!" },
+      ar: { name: "راشد", who: "موقع شخصي (بورتفوليو)", quote: "ما قصّرتوا أبد، شغل يبيض الوجه واحترافية في كل التفاصيل. سعيد جدًا بتعاملي معكم، ويعطيكم ألف عافية على هالإبداع. تستاهلون كل خير!", lines: ["شغل يبيض الوجه واحترافية في كل التفاصيل", "سعيد جدًا بتعاملي معكم"] },
+      en: { name: "Rashid", who: "Portfolio website", quote: "You held nothing back. This is work to be proud of, professional in every detail. I'm really happy I worked with you, and thank you for this creativity. You deserve the best!", lines: ["This is work to be proud of, professional in every detail", "I'm really happy I worked with you"] },
     },
   ],
 };
