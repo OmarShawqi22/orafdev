@@ -464,157 +464,70 @@
     cio.observe(el);
   });
 
-  /* ---------- Client reviews: a moving belt (real entries from config only) ----------
-     One WAAPI translate on the track, so the compositor moves it. No masks, blurs or per-frame layout: that is
-     what broke the project deck in Instagram's in-app browser. Arabic site = Arabic quotes, English site = the
-     translation; the belt runs with the reading direction. */
+  /* ---------- Client reviews: each beside the project we built (real entries from config only) ----------
+     A review shows only when its project has a live link and a screenshot. The screenshot is a real capture of the
+     client's site that scrolls inside a browser frame: one transform, moved by the compositor, only while in view. */
   const voices = $('#testimonials');
-  const quotes = (cfg.testimonials || []).filter(q => q && q.en && q.ar && q.en.quote && q.ar.quote);
+  const quotes = (cfg.testimonials || []).filter(q => q && q.link && q.shot && q.en && q.ar && q.en.quote && q.ar.quote);
   if (voices && quotes.length) {
-    const belt = $('[data-belt]', voices), track = $('[data-belt-track]', voices);
-    const prev = $('[data-prev]', voices), next = $('[data-next]', voices), hold = $('[data-hold]', voices);
-    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-    const card = (q, lang) => {
-      const c = q[lang];
-      return `<figure class="voice">
-        <svg class="voice-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M13 8H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Zm15 0h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3v4l4-4v-9a3 3 0 0 0-1-3Z"/></svg>
-        <blockquote>${esc(c.quote)}</blockquote>
-        <figcaption>
-          <span class="voice-avatar" aria-hidden="true">${esc([...c.name][0])}</span>
-          <span class="voice-who"><b>${esc(c.name)}</b><span>${esc(c.who)}</span></span>
-          ${q.score ? `<span class="voice-score" dir="ltr">${esc(q.score)}</span>` : ''}
-        </figcaption>
-      </figure>`;
+    const box = $('[data-review]', voices), names = $('[data-review-names]', voices);
+    const part = n => $(`[data-r="${n}"]`, box);
+    const view = part('view'), hold = part('hold');
+    let at = 0, held = false, inView = false, scrolling = false, restTimer = 0, over = false, swap = 0, close = false;
+    const lang = () => (I18N.lang === 'ar' ? 'ar' : 'en');
+    const play = () => box.classList.toggle('is-playing', inView && !held && !scrolling && !reduced);
+    const fill = () => {
+      const q = quotes[at], c = q[lang()];
+      box.style.setProperty('--tint', q.tint || '0, 187, 255');
+      part('quote').textContent = c.quote;
+      part('initial').textContent = [...c.name][0];
+      part('name').textContent = c.name;
+      part('who').textContent = c.who;
+      part('project').textContent = c.project || '';
+      part('score').hidden = !q.score; part('score').textContent = q.score || '';
+      part('url').textContent = q.link.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      part('live').href = q.link; view.href = q.link;
+      I18N.setAttr(view, 'aria-label', 'Visit live site');
+      part('case').hidden = !q.case; if (q.case) part('case').href = q.case;
+      const src = q.shot[lang()] || q.shot.en, img = part('shot');
+      if (close && img.getAttribute('src') !== src) img.src = src;
+      [...names.children].forEach((b, i) => { b.setAttribute('aria-pressed', String(i === at)); b.textContent = quotes[i][lang()].name; });
     };
-    let anim = null, group = 0, stepPx = 0, seen = false, inView = false, held = false, over = false, raf = 0, dragX = null;
-    const ARRIVE_MS = 1700 * (1 + 13 / 4);
-    const speed = () => (window.innerWidth < 720 ? 26 : 34); // px per second
-    const want = () => (inView && !held && !over && dragX === null && !document.hidden ? 1 : 0);
-
-    const build = () => {
-      const lang = I18N.lang === 'ar' ? 'ar' : 'en';
-      const set = quotes.map(q => card(q, lang)).join('');
-      const at = anim ? (anim.effect.getComputedTiming().progress || 0) : 0;
-      if (anim) { anim.cancel(); anim = null; }
-      track.innerHTML = `<div class="voice-set">${set}</div>`;
-      voices.hidden = false;
-      const first = track.firstElementChild;
-      group = first.getBoundingClientRect().width;
-      const cards = first.children;
-      stepPx = cards[1] ? Math.abs(cards[1].offsetLeft - cards[0].offsetLeft) : group;
-      if (reduced || !track.animate || !group) return; // a plain row you can swipe
-      const copies = Math.ceil(belt.clientWidth / group) + 1;
-      for (let i = 1; i < copies; i++) {
-        const c = first.cloneNode(true);
-        c.setAttribute('aria-hidden', 'true');
-        track.appendChild(c);
-      }
-      const to = (doc.dir === 'rtl' ? 1 : -1) * group;
-      anim = track.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${to}px,0,0)` }],
-        { duration: group / speed() * 1000, iterations: Infinity });
-      // the first run-in covers ARRIVE_MS of walking time, so it starts that far back and ends on the first card
-      anim.currentTime = seen ? at * group / speed() * 1000 : Math.max(0, group / speed() * 1000 - ARRIVE_MS);
-      cancelAnimationFrame(raf); raf = 0; pace = want();
-      if (!pace) anim.pause();
+    const show = i => {
+      at = (i + quotes.length) % quotes.length;
+      clearTimeout(swap);
+      if (reduced) { fill(); return; }
+      box.classList.add('is-swapping');
+      swap = setTimeout(() => { fill(); box.classList.remove('is-swapping'); }, 260);
     };
-
-    // Ease the belt between moving and still instead of cutting it. A changing playbackRate leaves the animation
-    // pending (it stands still), so while the pace changes we move currentTime ourselves; at walking pace the
-    // compositor takes over again.
-    let pace = 0;
-    const put = v => { const dur = anim.effect.getTiming().duration; anim.currentTime = ((v % dur) + dur) % dur; };
-    const glide = (from, to, ms) => {
-      cancelAnimationFrame(raf);
-      if (!anim) return;
-      anim.pause();
-      let at = anim.currentTime || 0, last = performance.now();
-      const t0 = last;
-      const tick = now => {
-        const k = Math.min(1, Math.max(0, now - t0) / ms);
-        pace = from + (to - from) * (1 - Math.pow(1 - k, 3));
-        at += Math.max(0, now - last) * pace; last = now;
-        put(at);
-        if (k < 1) raf = requestAnimationFrame(tick);
-        else { raf = 0; if (to) anim.play(); }
-      };
-      raf = requestAnimationFrame(tick);
-    };
-    const settle = () => {
-      if (!anim) return;
-      if (!inView || document.hidden) { cancelAnimationFrame(raf); raf = 0; pace = 0; anim.pause(); return; }
-      if (pace !== want()) glide(pace, want(), 420);
-    };
-    // First sight: the belt arrives with momentum and slows to its walking pace. Touch screens wait for the
-    // scroll to rest, so nothing starts mid-swipe.
-    const arrive = () => { if (!seen && inView && want()) { seen = true; glide(14, 1, 1700); } };
-    const touch = window.matchMedia('(hover: none)').matches;
-    let scrolling = false, restTimer = 0;
-    if (touch) window.addEventListener('scroll', () => { scrolling = true; clearTimeout(restTimer); restTimer = setTimeout(() => { scrolling = false; if (inView) (seen ? settle : arrive)(); }, 160); }, { passive: true });
-    new IntersectionObserver(es => {
-      inView = es[es.length - 1].isIntersecting;
-      if (inView && touch && scrolling) return;
-      if (inView && !seen) arrive(); else settle();
-    }, { threshold: 0.15 }).observe(belt);
-    document.addEventListener('visibilitychange', settle);
-
-    // Nudge by one card, or by a drag
-    const nudge = (px, ms) => {
-      if (!anim) { belt.scrollBy({ left: px * (doc.dir === 'rtl' ? -1 : 1), behavior: reduced ? 'auto' : 'smooth' }); return; }
-      const dt = px / speed() * 1000;
-      const start = anim.currentTime || 0, t0 = performance.now();
-      if (!ms) { put(start + dt); return; }
-      cancelAnimationFrame(raf);
-      anim.pause(); pace = 0;
-      const tick = now => {
-        const k = Math.min(1, Math.max(0, now - t0) / ms);
-        put(start + dt * (1 - Math.pow(1 - k, 3)));
-        if (k < 1) raf = requestAnimationFrame(tick); else { raf = 0; settle(); }
-      };
-      raf = requestAnimationFrame(tick);
-    };
-    prev.addEventListener('click', () => { seen = true; nudge(-stepPx, 620); });
-    next.addEventListener('click', () => { seen = true; nudge(stepPx, 620); });
+    if (quotes.length > 1) {
+      names.hidden = false;
+      names.innerHTML = quotes.map(() => '<button type="button"></button>').join('');
+      [...names.children].forEach((b, i) => b.addEventListener('click', () => { held = true; syncHold(); show(i); }));
+      ['pointerenter', 'focusin'].forEach(n => box.addEventListener(n, () => { over = true; }));
+      ['pointerleave', 'focusout'].forEach(n => box.addEventListener(n, () => { over = false; }));
+      if (!reduced) setInterval(() => { if (inView && !held && !over && !scrolling && !document.hidden) show(at + 1); }, 12000);
+    }
     const syncHold = () => {
       hold.setAttribute('aria-pressed', String(held));
-      I18N.setAttr(hold, 'aria-label', held ? 'Play the reviews' : 'Pause the reviews');
+      I18N.setAttr(hold, 'aria-label', held ? 'Play the preview' : 'Pause the preview');
+      play();
     };
-    hold.addEventListener('click', () => { held = !held; seen = true; syncHold(); settle(); });
-    if (reduced) hold.hidden = true;
-
-    belt.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { over = true; settle(); } });
-    belt.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { over = false; settle(); } });
-    belt.addEventListener('pointerdown', e => {
-      if (!anim || e.button) return;
-      dragX = e.clientX; seen = true;
-      cancelAnimationFrame(raf); raf = 0; pace = 0; anim.pause();
-      belt.classList.add('is-dragging');
-      try { belt.setPointerCapture(e.pointerId); } catch (_) {}
-    });
-    belt.addEventListener('pointermove', e => {
-      if (dragX === null) return;
-      nudge((dragX - e.clientX) * (doc.dir === 'rtl' ? -1 : 1), 0);
-      dragX = e.clientX;
-    });
-    const drop = e => {
-      if (dragX === null) return;
-      dragX = null;
-      belt.classList.remove('is-dragging');
-      over = e.pointerType === 'mouse' && belt.matches(':hover');
-      settle();
-    };
-    belt.addEventListener('pointerup', drop);
-    belt.addEventListener('pointercancel', drop);
-
-    build();
+    hold.addEventListener('click', () => { held = !held; syncHold(); });
+    hold.hidden = reduced;
+    // touch screens: the preview starts once the scroll rests, so nothing starts mid-swipe
+    if (window.matchMedia('(hover: none)').matches) window.addEventListener('scroll', () => {
+      if (!scrolling) { scrolling = true; play(); }
+      clearTimeout(restTimer); restTimer = setTimeout(() => { scrolling = false; play(); }, 180);
+    }, { passive: true });
+    new IntersectionObserver(es => { inView = es[es.length - 1].isIntersecting; play(); }, { threshold: 0.2 }).observe(view);
+    // the screenshot (about 100 KB) loads when the section comes near
+    voices.hidden = false;
+    fill();
+    const near = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { near.disconnect(); close = true; fill(); } }, { rootMargin: '1200px 0px' });
+    near.observe(voices);
     syncHold();
-    document.addEventListener('orafdev:lang', build);
-    document.fonts?.ready.then(build);
-    let lastW = window.innerWidth, sizeTimer = 0;
-    window.addEventListener('resize', () => { // phones fire resize when the address bar moves: width changes only
-      if (window.innerWidth === lastW) return;
-      lastW = window.innerWidth;
-      clearTimeout(sizeTimer); sizeTimer = setTimeout(build, 180);
-    });
+    document.addEventListener('orafdev:lang', fill);
   }
 
   /* ---------- Scroll-linked: work deck, system, timeline, CTA ---------- */

@@ -35,13 +35,15 @@ window.ORAFDEV = {
 
   /*
     Real client feedback only, word for word in Arabic, with an English translation.
-    The section stays hidden while the list is empty. Never add feedback from our own team.
-    score: only when the client gave one.
+    A review shows only when it has "link" (the live project) and "shot" (a real capture of it, 1120 x 1960, per
+    language); the others wait here. Never add feedback from our own team. score: only when the client gave one.
   */
   testimonials: [
     {
-      ar: { name: "محمد علي", who: "الطور للهندسة والإنشاءات", quote: "بصراحة كانت تجربة ممتازة، وسرعة التنفيذ فاقت توقعاتي، والموقع طلع بشكل احترافي ومميز. أعجبني اهتمامكم بالتفاصيل وسلاسة التواصل معكم. يعطيكم ألف عافية، ومشكورين على جهودكم وإبداعكم، تستاهلون كل خير." },
-      en: { name: "Mohammed Ali", who: "Alttor.CEGS", quote: "Honestly, it was an excellent experience. Delivery was faster than I expected, and the website came out professional and distinctive. I liked your attention to detail and how smooth it was to communicate with you. Thank you for your effort and creativity. You deserve the best." },
+      link: "https://alttor.com/", case: "work/attoor.html", tint: "232, 170, 40",
+      shot: { en: "assets/img/review-alttor-en.webp", ar: "assets/img/review-alttor-ar.webp" },
+      ar: { name: "محمد علي", who: "الطور للهندسة والإنشاءات", project: "موقع الشركة بالعربية والإنجليزية", quote: "بصراحة كانت تجربة ممتازة، وسرعة التنفيذ فاقت توقعاتي، والموقع طلع بشكل احترافي ومميز. أعجبني اهتمامكم بالتفاصيل وسلاسة التواصل معكم. يعطيكم ألف عافية، ومشكورين على جهودكم وإبداعكم، تستاهلون كل خير." },
+      en: { name: "Mohammed Ali", who: "Alttor.CEGS", project: "Company website in English and Arabic", quote: "Honestly, it was an excellent experience. Delivery was faster than I expected, and the website came out professional and distinctive. I liked your attention to detail and how smooth it was to communicate with you. Thank you for your effort and creativity. You deserve the best." },
     },
     {
       score: "10/10",
